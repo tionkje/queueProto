@@ -8,25 +8,25 @@
 
   let selIdx;
   let selected;
-  $: if(!isNaN(selIdx)) selected = dir.producers[selIdx];
+  $: if (!isNaN(selIdx)) selected = dir.producers[selIdx];
 
   function createNewInSelected() {
     selected.enque((newP) => new ProduceAction(10, newP));
     dir.producers = dir.producers;
   }
-  function cancelAction(action){
+  function cancelAction(action) {
     selected.cancelAction(action);
     selected.actionQueue = selected.actionQueue;
   }
 
-  onMount(()=>{
+  onMount(() => {
     let prev = performance.now();
-    function loop(){
+    function loop() {
       let now = performance.now();
-      const dt = (now-prev)/1000;
+      const dt = (now - prev) / 1000;
       dir.evaluate(dt);
       prev = now;
-      dir=dir;
+      dir = dir;
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
@@ -34,21 +34,29 @@
 </script>
 
 {#each dir.producers as p, i}
-<button class:paused={p.paused} on:click={(e) => (selIdx = i)}>{p.id} {p.actionQueue.length||''}</button>
+  <button class:paused={p.paused} on:click={(e) => (selIdx = i)}>
+    {p.id}
+    {p.actionQueue.length || ''}
+  </button>
 {/each}
 
-<br>
-<br>
+<br />
+<br />
 
 {#if selected}
   {selected.id}
   <button on:click={createNewInSelected}>create</button>
-  <br>
+  <br />
   {#each selected.actionQueue as action}
-  <button on:click={e=>cancelAction(action)}>{action.id} {action.timeLeft}</button>
+    <button on:click={(e) => cancelAction(action)}>
+      {action.id}
+      {action.timeLeft}
+    </button>
   {/each}
 {/if}
 
 <style>
-.paused{ opacity:.6; }
+  .paused {
+    opacity: 0.6;
+  }
 </style>

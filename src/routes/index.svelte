@@ -24,14 +24,23 @@
     function loop() {
       let now = performance.now();
       const dt = (now - prev) / 1000;
-      dir.evaluate(dt);
+      if (!paused) dir.evaluate(dt);
       prev = now;
       dir = dir;
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
   });
+  let paused = false;
 </script>
+
+{#if paused}
+  <button on:click={(e) => (paused = false)}>Go</button>
+{:else}
+  <button on:click={(e) => (paused = true)}>Pauze</button>
+{/if}
+
+<br />
 
 {#each dir.producers as p, i}
   <button class:paused={p.paused} on:click={(e) => (selIdx = i)}>
@@ -50,8 +59,9 @@
   {#each selected.actionQueue as action}
     <button on:click={(e) => cancelAction(action)}>
       {action.id}
-      {action.timeLeft}
-    </button>
+      {action.timeLeft.toFixed(1)}
+      <progress value={1 - action.timeLeft / action.totalTime} /></button
+    >
   {/each}
 {/if}
 

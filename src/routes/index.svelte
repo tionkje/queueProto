@@ -4,7 +4,7 @@
   import { onMount } from 'svelte';
 
   const dir = new Manager();
-  dir.createUnpausedProducej();
+  dir.createUnpausedProducer();
 
   let selIdx;
   let selected;

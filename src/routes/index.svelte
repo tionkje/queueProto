@@ -4,20 +4,14 @@
   import { onMount } from 'svelte';
 
   const dir = new Manager();
-  dir.createProducer();
+  dir.createUnpausedProducej();
 
   let selIdx;
   let selected;
   $: if (!isNaN(selIdx)) selected = dir.producers[selIdx];
 
   function createNewInSelected() {
-    var a;
-    var newp = selected.enque((newP) => {
-      a = new ProduceAction(10, newP);
-      a.producer = selected;
-      return a;
-    });
-    newp.action = a;
+    var newp = selected.enqueueProduceAction(10);
     dir.producers = dir.producers;
   }
   function cancelAction(action) {
@@ -62,8 +56,8 @@
           <progress value={1 - p.head.timeLeft / p.head.totalTime} />
         {/if}
       {/if}
-      {#if p.paused && p.action}
-        <progress value={1 - p.action.timeLeft / p.action.totalTime} />
+      {#if p.paused && p.produceAction}
+        <progress value={1 - p.produceAction.timeLeft / p.produceAction.totalTime} />
       {/if}
 
     </div>
@@ -76,8 +70,8 @@
       <div class="producerId">
       {selected.id}
       </div>
-      {#if selected.paused && selected.action}
-      <progress value={1 - selected.action.timeLeft / selected.action.totalTime} />
+      {#if selected.paused && selected.produceAction}
+      <progress value={1 - selected.produceAction.timeLeft / selected.produceAction.totalTime} />
       {/if}
     </div>
     <button on:click={createNewInSelected}>create</button>

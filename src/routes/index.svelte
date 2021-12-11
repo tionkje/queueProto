@@ -40,6 +40,7 @@
   </button>
 </section>
 
+
 <section class="field">
   {#each dir.producers as p, i}
     <div
@@ -47,7 +48,10 @@
       class:selected={selIdx == i}
       class:paused={p.paused}
     >
-      <button class="producerId" on:click={(e) => (selIdx = selIdx == i ? null : i)}>
+      <button
+        class="producerId"
+        on:click={(e) => (selIdx = selIdx == i ? null : i)}
+      >
         {p.id}
       </button>
       {#if p.head}
@@ -57,47 +61,54 @@
         {/if}
       {/if}
       {#if p.paused && p.produceAction}
-        <progress value={1 - p.produceAction.timeLeft / p.produceAction.totalTime} />
+        <progress
+          value={1 - p.produceAction.timeLeft / p.produceAction.totalTime}
+        />
       {/if}
-
     </div>
   {/each}
 </section>
+
 
 {#if selected}
   <section class="selection">
     <div class="self item">
       <div class="producerId">
-      {selected.id}
+        {selected.id}
       </div>
       {#if selected.paused && selected.produceAction}
-      <progress value={1 - selected.produceAction.timeLeft / selected.produceAction.totalTime} />
+        <progress
+          value={1 -
+            selected.produceAction.timeLeft / selected.produceAction.totalTime}
+        />
       {/if}
     </div>
-    <button on:click={createNewInSelected}>create</button>
-    <br />
     {#each selected.actionQueue as action}
-      <div class="inprogress item">
-        <button class="producerId"
-          on:click={(e) => (selIdx = dir.producers.indexOf(action._result))}
-          on:contextmenu|preventDefault={(e) => cancelAction(action)}
-        >
-          {action.produceId}
-        </button>
-        {#if action.started}
-          <!-- {action.timeLeft.toFixed(1)} -->
-          <progress value={1 - action.timeLeft / action.totalTime} />
-        {/if}
-      </div>
+      {#if action.type == 'ProduceAction'}
+        <div class="inprogress item">
+          <button
+            class="producerId"
+            on:click={(e) => (selIdx = dir.producers.indexOf(action.producing))}
+            on:contextmenu|preventDefault={(e) => cancelAction(action)}
+          >
+            {action.producing.id}
+          </button>
+          {#if action.started}
+            <progress value={1 - action.timeLeft / action.totalTime} />
+          {/if}
+        </div>
+      {:else}Not implementd{/if}
     {/each}
+    <br />
+    <button on:click={createNewInSelected}>create</button>
   </section>
 {/if}
 
+
 <style>
-:global(body) {
-  /* this will apply to <body> */
-  font-family:Arial;
-}
+  :global(body) {
+    font-family: Arial;
+  }
   .paused {
     opacity: 0.6;
   }
@@ -106,17 +117,15 @@
     border: 1px solid grey;
   }
   .selection {
-    background-color:#fffde7;
+    background-color: #fffde7;
   }
   .selected {
-    /* color: white; */
-    /* background: black; */
     border: 1px solid black;
   }
   button {
     cursor: pointer;
     font-size: inherit;
-    font-family:inherit;
+    font-family: inherit;
   }
   .item {
     width: 50px;
@@ -125,16 +134,16 @@
     font-size: 2em;
     margin: 2px;
   }
-  .item .producerId{
-    display:inline-flex;
+  .item .producerId {
+    display: inline-flex;
     padding: 0;
     margin: 0;
     height: 50px;
     width: 100%;
-    text-align:center;
+    text-align: center;
     align-items: center;
-    justify-content:center;
-    background:#d6d6d6;
+    justify-content: center;
+    background: #d6d6d6;
   }
   .item button {
     border: none;

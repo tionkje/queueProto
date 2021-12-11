@@ -6,9 +6,7 @@
   const dir = new Manager();
   dir.createUnpausedProducer();
 
-  let selIdx;
   let selected;
-  $: if (!isNaN(selIdx)) selected = dir.producers[selIdx];
 
   function createNewInSelected() {
     var newp = selected.enqueueProduceAction(10);
@@ -27,6 +25,7 @@
       if (!paused) dir.evaluate(dt);
       prev = now;
       dir = dir;
+      selected = selected;
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
@@ -45,12 +44,12 @@
   {#each dir.producers as p, i}
     <div
       class="producers item"
-      class:selected={selIdx == i}
+      class:selected={selected == p}
       class:paused={p.paused}
     >
       <button
         class="producerId"
-        on:click={(e) => (selIdx = selIdx == i ? null : i)}
+        on:click={(e) => (selected = selected == p ? null : p)}
       >
         {p.id}
       </button>
@@ -88,7 +87,7 @@
         <div class="inprogress item">
           <button
             class="producerId"
-            on:click={(e) => (selIdx = dir.producers.indexOf(action.producing))}
+            on:click={(e) => (selected = action.producing)}
             on:contextmenu|preventDefault={(e) => cancelAction(action)}
           >
             {action.producing.id}

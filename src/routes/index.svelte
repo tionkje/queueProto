@@ -116,7 +116,11 @@
 <section class="field">
   <button on:click={(e) => (selection = $dir.producers)}>select all</button>
   <br />
-  {#each $dir.producers as p, i}
+  {#each $dir.producers.filter(x=>!x.paused) as p, i}
+    <Item bind:selection={selection} bind:producer={p} />
+  {/each}
+  <br />
+  {#each $dir.producers.filter(x=>x.paused) as p, i}
     <Item bind:selection={selection} bind:producer={p} />
   {/each}
 </section>

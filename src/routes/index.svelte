@@ -5,18 +5,27 @@
 
   const dir = new Manager();
   const op = dir.createUnpausedProducer();
-  op.type="A";
+  op.type = 'A';
 
   let selection = [];
 
   function createNewInSelected() {
     var newp = selection[0].enqueueProduceAction(10);
-    newp.type="A";
+    newp.type = 'A';
     dir.producers = dir.producers;
   }
   function cancelAction(action) {
     selection[0].cancelAction(action);
     selection[0].actionQueue = selection[0].actionQueue;
+  }
+
+  function countTypes(producers) {
+    const cobj = producers.reduce((c, p) => {
+      if (!c[p.type]) c[p.type] = 0;
+      c[p.type]++;
+      return c;
+    }, {});
+    return Object.entries(cobj);
   }
 
   onMount(() => {
@@ -41,18 +50,15 @@
   </button>
 </section>
 
-
 <section class="field">
   {#each dir.producers as p, i}
-    <div
-      class="producers item"
-      class:selected={selection.includes(p)}
-      class:paused={p.paused}
-    >
+    <div class="producers item" class:selected={selection.includes(p)} class:paused={p.paused}>
       <button
         class="producerType"
-        on:click={(e) => (selection = selection.includes(p) ? null : [p])}
-        on:contextmenu|preventDefault={e=>selection.includes(p)?selection.splice(selection.indexOf(p),1):selection.push(p)}
+        on:click={(e) =>
+          (selection = selection.includes(p) && selection.length == 1 ? selection.filter((x) => x != p) : [p])}
+        on:contextmenu|preventDefault={(e) =>
+          selection.includes(p) ? selection.splice(selection.indexOf(p), 1) : selection.push(p)}
       >
         {p.type}
       </button>
@@ -64,29 +70,33 @@
         {/if}
       {/if}
       {#if p.paused && p.produceAction}
-        <progress
-          value={1 - p.produceAction.timeLeft / p.produceAction.totalTime}
-        />
+        <progress value={1 - p.produceAction.timeLeft / p.produceAction.totalTime} />
       {/if}
     </div>
   {/each}
 </section>
 
-
 {#if selection.length}
   <section class="selection">
-    {#each selection.reduce((a,b)=>{a[b.type]=(a[b.type]||0)+1;return a;},{}) as }
-    <div class="self item">
-      <div class="producerType">
-        {selection.map(x=>x.id)}
-      </div>
-      {#if selection[0].paused && selection[0].produceAction}
-        <progress
-          value={1 -
-            selection[0].produceAction.timeLeft / selection[0].produceAction.totalTime}
-        />
-      {/if}
-    </div>
+    {#if selection.length == 1}
+      {#each selection as selected}
+        <div class="self item">
+          <div class="producerType">
+            {selected.id}
+          </div>
+          {#if selected.paused && selected.produceAction}
+            <progress value={1 - selected.produceAction.timeLeft / selected.produceAction.totalTime} />
+          {/if}
+        </div>
+      {/each}
+    {:else}
+      {#each countTypes(selection) as [type, count]}
+        <div class="self item">
+          <div class="producerType">{type}</div>
+          <div class="producerId">{count}</div>
+        </div>
+      {/each}
+    {/if}
     {#each selection[0].actionQueue as action}
       {#if action.type == 'ProduceAction'}
         <div class="inprogress item">
@@ -108,7 +118,6 @@
     <button on:click={createNewInSelected}>create</button>
   </section>
 {/if}
-
 
 <style>
   :global(body) {
@@ -154,10 +163,11 @@
     border: none;
   }
   .item .producerId {
-    position:absolute;
-    left:0;
-    bottom:0;
-    font-size:0.5em;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    font-size: 0.5em;
+    pointer-events: none;
   }
 
   .item progress {

@@ -4,17 +4,19 @@
   import { onMount } from 'svelte';
 
   const dir = new Manager();
-  dir.createUnpausedProducer();
+  const op = dir.createUnpausedProducer();
+  op.type="A";
 
-  let selected;
+  let selection = [];
 
   function createNewInSelected() {
-    var newp = selected.enqueueProduceAction(10);
+    var newp = selection[0].enqueueProduceAction(10);
+    newp.type="A";
     dir.producers = dir.producers;
   }
   function cancelAction(action) {
-    selected.cancelAction(action);
-    selected.actionQueue = selected.actionQueue;
+    selection[0].cancelAction(action);
+    selection[0].actionQueue = selection[0].actionQueue;
   }
 
   onMount(() => {
@@ -25,7 +27,7 @@
       if (!paused) dir.evaluate(dt);
       prev = now;
       dir = dir;
-      selected = selected;
+      selection = selection;
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
@@ -44,15 +46,17 @@
   {#each dir.producers as p, i}
     <div
       class="producers item"
-      class:selected={selected == p}
+      class:selected={selection.includes(p)}
       class:paused={p.paused}
     >
       <button
-        class="producerId"
-        on:click={(e) => (selected = selected == p ? null : p)}
+        class="producerType"
+        on:click={(e) => (selection = selection.includes(p) ? null : [p])}
+        on:contextmenu|preventDefault={e=>selection.includes(p)?selection.splice(selection.indexOf(p),1):selection.push(p)}
       >
-        {p.id}
+        {p.type}
       </button>
+      <div class="producerId">{p.id}</div>
       {#if p.head}
         <div class="count">{p.actionQueue.length || ''}</div>
         {#if !p.paused && p.head.started}
@@ -69,29 +73,31 @@
 </section>
 
 
-{#if selected}
+{#if selection.length}
   <section class="selection">
+    {#each selection.reduce((a,b)=>{a[b.type]=(a[b.type]||0)+1;return a;},{}) as }
     <div class="self item">
-      <div class="producerId">
-        {selected.id}
+      <div class="producerType">
+        {selection.map(x=>x.id)}
       </div>
-      {#if selected.paused && selected.produceAction}
+      {#if selection[0].paused && selection[0].produceAction}
         <progress
           value={1 -
-            selected.produceAction.timeLeft / selected.produceAction.totalTime}
+            selection[0].produceAction.timeLeft / selection[0].produceAction.totalTime}
         />
       {/if}
     </div>
-    {#each selected.actionQueue as action}
+    {#each selection[0].actionQueue as action}
       {#if action.type == 'ProduceAction'}
         <div class="inprogress item">
           <button
-            class="producerId"
-            on:click={(e) => (selected = action.producing)}
+            class="producerType"
+            on:click={(e) => (selection = [action.producing])}
             on:contextmenu|preventDefault={(e) => cancelAction(action)}
           >
-            {action.producing.id}
+            {action.producing.type}
           </button>
+          <div class="producerId">{action.producing.id}</div>
           {#if action.started}
             <progress value={1 - action.timeLeft / action.totalTime} />
           {/if}
@@ -133,7 +139,7 @@
     font-size: 2em;
     margin: 2px;
   }
-  .item .producerId {
+  .item .producerType {
     display: inline-flex;
     padding: 0;
     margin: 0;
@@ -146,6 +152,12 @@
   }
   .item button {
     border: none;
+  }
+  .item .producerId {
+    position:absolute;
+    left:0;
+    bottom:0;
+    font-size:0.5em;
   }
 
   .item progress {

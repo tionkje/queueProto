@@ -9,8 +9,17 @@
 
   let selection = [];
 
+  function createClick(e){
+    let amount = 1;
+    if(e.shiftKey) amount = 5;
+    for(let i=0;i<amount;i++) createNewInSelected();
+  }
   function createNewInSelected() {
-    var newp = selection[0].enqueueProduceAction(10);
+    const sel = selection.slice().sort((a,b)=>{
+      // TODO: sort by time taken by actions. What to do for not determined action times? (guesstimate??)
+      return a.actionQueue.length - b.actionQueue.length;
+    });
+    const newp = sel[0].enqueueProduceAction(10);
     newp.type = 'A';
     dir.producers = dir.producers;
   }
@@ -51,6 +60,8 @@
 </section>
 
 <section class="field">
+  <button on:click={e=>selection=dir.producers}>select all</button>
+  <br>
   {#each dir.producers as p, i}
     <div class="producers item" class:selected={selection.includes(p)} class:paused={p.paused}>
       <button
@@ -115,7 +126,7 @@
       {:else}Not implementd{/if}
     {/each}
     <br />
-    <button on:click={createNewInSelected}>create</button>
+    <button on:click={createClick}>create</button>
   </section>
 {/if}
 

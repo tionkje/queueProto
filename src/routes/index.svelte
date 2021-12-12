@@ -9,13 +9,14 @@
 
   let selection = [];
 
-  function createClick(e){
+  function createClick(e) {
     let amount = 1;
-    if(e.shiftKey) amount = 5;
-    for(let i=0;i<amount;i++) createNewInSelected();
+    if (typeof e == 'number') amount = e;
+    else if (e.shiftKey) amount = 5;
+    for (let i = 0; i < amount; i++) createNewInSelected();
   }
   function createNewInSelected() {
-    const sel = selection.slice().sort((a,b)=>{
+    const sel = selection.slice().sort((a, b) => {
       // TODO: sort by time taken by actions. What to do for not determined action times? (guesstimate??)
       return a.actionQueue.length - b.actionQueue.length;
     });
@@ -59,36 +60,8 @@
   </button>
 </section>
 
-<section class="field">
-  <button on:click={e=>selection=dir.producers}>select all</button>
-  <br>
-  {#each dir.producers as p, i}
-    <div class="producers item" class:selected={selection.includes(p)} class:paused={p.paused}>
-      <button
-        class="producerType"
-        on:click={(e) =>
-          (selection = selection.includes(p) && selection.length == 1 ? selection.filter((x) => x != p) : [p])}
-        on:contextmenu|preventDefault={(e) =>
-          selection.includes(p) ? selection.splice(selection.indexOf(p), 1) : selection.push(p)}
-      >
-        {p.type}
-      </button>
-      <div class="producerId">{p.id}</div>
-      {#if p.head}
-        <div class="count">{p.actionQueue.length || ''}</div>
-        {#if !p.paused && p.head.started}
-          <progress value={1 - p.head.timeLeft / p.head.totalTime} />
-        {/if}
-      {/if}
-      {#if p.paused && p.produceAction}
-        <progress value={1 - p.produceAction.timeLeft / p.produceAction.totalTime} />
-      {/if}
-    </div>
-  {/each}
-</section>
-
-{#if selection.length}
-  <section class="selection">
+<section class="selection">
+  {#if selection.length}
     {#if selection.length == 1}
       {#each selection as selected}
         <div class="self item">
@@ -127,8 +100,41 @@
     {/each}
     <br />
     <button on:click={createClick}>create</button>
-  </section>
-{/if}
+    <button on:click={(e) => createClick(5)}>create 5</button>
+    <button on:click={(e) => createClick(10)}>create 10</button>
+    <button on:click={(e) => createClick(20)}>create 20</button>
+    <button on:click={(e) => createClick(50)}>create 50</button>
+    <button on:click={(e) => createClick(100)}>create 100</button>
+  {/if}
+</section>
+
+<section class="field">
+  <button on:click={(e) => (selection = dir.producers)}>select all</button>
+  <br />
+  {#each dir.producers as p, i}
+    <div class="producers item" class:selected={selection.includes(p)} class:paused={p.paused}>
+      <button
+        class="producerType"
+        on:click={(e) =>
+          (selection = selection.includes(p) && selection.length == 1 ? selection.filter((x) => x != p) : [p])}
+        on:contextmenu|preventDefault={(e) =>
+          selection.includes(p) ? selection.splice(selection.indexOf(p), 1) : selection.push(p)}
+      >
+        {p.type}
+      </button>
+      <div class="producerId">{p.id}</div>
+      {#if p.head}
+        <div class="count">{p.actionQueue.length || ''}</div>
+        {#if !p.paused && p.head.started}
+          <progress value={1 - p.head.timeLeft / p.head.totalTime} />
+        {/if}
+      {/if}
+      {#if p.paused && p.produceAction}
+        <progress value={1 - p.produceAction.timeLeft / p.produceAction.totalTime} />
+      {/if}
+    </div>
+  {/each}
+</section>
 
 <style>
   :global(body) {
@@ -143,6 +149,7 @@
   }
   .selection {
     background-color: #fffde7;
+    height: 200px;
   }
   .selected {
     border: 1px solid black;

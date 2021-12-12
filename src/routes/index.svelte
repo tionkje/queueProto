@@ -1,11 +1,16 @@
 <script>
   import { Manager, ProduceAction } from 'queueDirector';
-
+  import { writable } from 'svelte/store';
   import { onMount } from 'svelte';
+  import Item from '$lib/Item.svelte';
 
-  const dir = new Manager();
-  const op = dir.createUnpausedProducer();
-  op.type = 'A';
+  function initDir(){
+    const dir = new Manager();
+    const op = dir.createUnpausedProducer();
+    op.type = 'A';
+    return dir;
+  }
+  const dir = writable(initDir());
 
   let selection = [];
 
@@ -22,7 +27,7 @@
     });
     const newp = sel[0].enqueueProduceAction(10);
     newp.type = 'A';
-    dir.producers = dir.producers;
+    $dir.producers = $dir.producers;
   }
   function cancelAction(action) {
     selection[0].cancelAction(action);
@@ -43,9 +48,9 @@
     function loop() {
       let now = performance.now();
       const dt = (now - prev) / 1000;
-      if (!paused) dir.evaluate(dt);
+      if (!paused) $dir.evaluate(dt);
       prev = now;
-      dir = dir;
+      $dir = $dir;
       selection = selection;
       requestAnimationFrame(loop);
     }
@@ -109,36 +114,21 @@
 </section>
 
 <section class="field">
-  <button on:click={(e) => (selection = dir.producers)}>select all</button>
+  <button on:click={(e) => (selection = $dir.producers)}>select all</button>
   <br />
-  {#each dir.producers as p, i}
-    <div class="producers item" class:selected={selection.includes(p)} class:paused={p.paused}>
-      <button
-        class="producerType"
-        on:click={(e) =>
-          (selection = selection.includes(p) && selection.length == 1 ? selection.filter((x) => x != p) : [p])}
-        on:contextmenu|preventDefault={(e) =>
-          selection.includes(p) ? selection.splice(selection.indexOf(p), 1) : selection.push(p)}
-      >
-        {p.type}
-      </button>
-      <div class="producerId">{p.id}</div>
-      {#if p.head}
-        <div class="count">{p.actionQueue.length || ''}</div>
-        {#if !p.paused && p.head.started}
-          <progress value={1 - p.head.timeLeft / p.head.totalTime} />
-        {/if}
-      {/if}
-      {#if p.paused && p.produceAction}
-        <progress value={1 - p.produceAction.timeLeft / p.produceAction.totalTime} />
-      {/if}
-    </div>
+  {#each $dir.producers as p, i}
+    <Item bind:selection={selection} bind:producer={p} />
   {/each}
 </section>
 
 <style>
   :global(body) {
     font-family: Arial;
+  }
+  :global(button) {
+    cursor: pointer;
+    font-size: inherit;
+    font-family: inherit;
   }
   .paused {
     opacity: 0.6;
@@ -153,11 +143,6 @@
   }
   .selected {
     border: 1px solid black;
-  }
-  button {
-    cursor: pointer;
-    font-size: inherit;
-    font-family: inherit;
   }
   .item {
     width: 50px;

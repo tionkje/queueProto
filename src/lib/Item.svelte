@@ -7,7 +7,8 @@
   <button
     class="producerType"
     on:click={(e) =>
-      (selection = selection.includes(producer) && selection.length == 1 ? selection.filter((x) => x != producer) : [producer])}
+      (selection =
+        selection.includes(producer) && selection.length == 1 ? selection.filter((x) => x != producer) : [producer])}
     on:contextmenu|preventDefault={(e) =>
       selection.includes(producer) ? selection.splice(selection.indexOf(producer), 1) : selection.push(producer)}
   >

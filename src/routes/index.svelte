@@ -1,10 +1,10 @@
 <script>
-  import { Manager, ProduceAction } from 'queueDirector';
+  import { Manager } from 'queueDirector';
   import { writable } from 'svelte/store';
   import { onMount } from 'svelte';
   import Item from '$lib/Item.svelte';
 
-  function initDir(){
+  function initDir() {
     const dir = new Manager();
     const op = dir.createUnpausedProducer();
     op.type = 'A';
@@ -25,7 +25,7 @@
       // TODO: sort by time taken by actions. What to do for not determined action times? (guesstimate??)
       return a.actionQueue.length - b.actionQueue.length;
     });
-    const newp = sel[0].enqueueProduceAction(10);
+    const newp = sel[0].enqueueProduceAction(10).producing;
     newp.type = 'A';
     $dir.producers = $dir.producers;
   }
@@ -116,14 +116,16 @@
 <section class="field">
   <button on:click={(e) => (selection = $dir.producers)}>select all</button>
   <br />
-  {#each $dir.producers.filter(x=>!x.paused) as p, i}
-    <Item bind:selection={selection} bind:producer={p} />
+  {#each $dir.producers.filter((x) => !x.paused) as p, i}
+    <Item bind:selection bind:producer={p} />
   {/each}
   <br />
-  {#each $dir.producers.filter(x=>x.paused) as p, i}
-    <Item bind:selection={selection} bind:producer={p} />
+  {#each $dir.producers.filter((x) => x.paused) as p, i}
+    <Item bind:selection bind:producer={p} />
   {/each}
 </section>
+
+<pre>{JSON.stringify($dir,0,2)}</pre>
 
 <style>
   :global(body) {

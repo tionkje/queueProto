@@ -21,7 +21,7 @@
     else if (e.shiftKey) amount = 5;
     for (let i = 0; i < amount; i++) createNewInSelected();
   }
-  function getSelectionHead(){
+  function getSelectionHead() {
     return selection.slice().sort((a, b) => {
       // TODO: sort by time taken by actions. What to do for not determined action times? (guesstimate??)
       return a.actionQueue.length - b.actionQueue.length;
@@ -34,19 +34,19 @@
     $dir.producers = $dir.producers;
   }
 
-  function researchClick(e){
+  function researchClick(e) {
     const name = 'thing';
-    if(research[name]) return;
+    if (research[name]) return;
     const sel = getSelectionHead();
     research[name] = 'start';
-    sel.enqueueWaitAction(10, ()=>{
+    sel.enqueueWaitAction(10, () => {
       research[name] = 'done';
-    })
+    });
   }
 
-  function cancelAction(action) {
-    selection[0].cancelAction(action);
-    selection[0].actionQueue = selection[0].actionQueue;
+  function cancelAction(producer, action) {
+    producer.cancelAction(action);
+    producer.actionQueue = selection[0].actionQueue;
   }
 
   function countTypes(producers) {
@@ -81,7 +81,7 @@
 </section>
 
 <section class="researched">
-  {JSON.stringify(research,0,2)}
+  {JSON.stringify(research, 0, 2)}
 </section>
 <section class="selection">
   {#if selection.length}
@@ -95,6 +95,36 @@
             <progress value={1 - selected.produceAction.timeLeft / selected.produceAction.totalTime} />
           {/if}
         </div>
+        {#each selected.actionQueue as action}
+          {#if action.type == 'ProduceAction'}
+            <div class="inprogress item">
+              <button
+                class="producerType"
+                on:click={(e) => (selection = [action.producing])}
+                on:contextmenu|preventDefault={(e) => cancelAction(selected, action)}
+              >
+                {action.producing.type}
+              </button>
+              <div class="producerId">{action.producing.id}</div>
+              {#if action.started}
+                <progress value={1 - action.timeLeft / action.totalTime} />
+              {/if}
+            </div>
+          {:else if action.type == 'WaitAction'}
+            <div class="inprogress item">
+              <button
+                class="producerType"
+                on:click={(e) => (selection = [action.producing])}
+                on:contextmenu|preventDefault={(e) => cancelAction(selected, action)}
+              >
+                R
+              </button>
+              {#if action.started}
+                <progress value={1 - action.timeLeft / action.totalTime} />
+              {/if}
+            </div>
+          {:else}Not implementd{/if}
+        {/each}
       {/each}
     {:else}
       {#each countTypes(selection) as [type, count]}
@@ -103,40 +133,13 @@
           <div class="producerId">{count}</div>
         </div>
       {/each}
+        <div class="self item">
+          <div class="producerType">{selection.reduce((a,p)=>a+p.actionQueue.length,0)}</div>
+        </div>
     {/if}
-    {#each selection[0].actionQueue as action}
-      {#if action.type == 'ProduceAction'}
-        <div class="inprogress item">
-          <button
-            class="producerType"
-            on:click={(e) => (selection = [action.producing])}
-            on:contextmenu|preventDefault={(e) => cancelAction(action)}
-          >
-            {action.producing.type}
-          </button>
-          <div class="producerId">{action.producing.id}</div>
-          {#if action.started}
-            <progress value={1 - action.timeLeft / action.totalTime} />
-          {/if}
-        </div>
-      {:else if action.type == 'WaitAction'}
-        <div class="inprogress item">
-          <button
-            class="producerType"
-            on:click={(e) => (selection = [action.producing])}
-            on:contextmenu|preventDefault={(e) => cancelAction(action)}
-          >
-          R
-          </button>
-          {#if action.started}
-            <progress value={1 - action.timeLeft / action.totalTime} />
-          {/if}
-        </div>
-      {:else}Not implementd{/if}
-    {/each}
     <br />
     <button on:click={researchClick}>research</button>
-    <br>
+    <br />
     <button on:click={createClick}>create</button>
     <button on:click={(e) => createClick(5)}>create 5</button>
     <button on:click={(e) => createClick(10)}>create 10</button>

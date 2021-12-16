@@ -34,19 +34,13 @@
     $dir.producers = $dir.producers;
   }
 
-  function researchClick(e) {
-    const name = 'thing';
+  function researchClick(name) {
     if (research[name]) return;
     const sel = getSelectionHead();
-    research[name] = 'start';
-    sel.enqueueWaitAction(10, () => {
-      research[name] = 'done';
-    });
-  }
-
-  function cancelAction(producer, action) {
-    producer.cancelAction(action);
-    producer.actionQueue = selection[0].actionQueue;
+    research[name] = 'queued';
+    const a = sel.enqueueWaitAction(10, () => (research[name] = 'done'));
+    a.on('start', () => (research[name] = 'start'));
+      a.on('cancel', ()=>{ delete research[name]; research=research;});
   }
 
   function countTypes(producers) {
@@ -101,7 +95,7 @@
               <button
                 class="producerType"
                 on:click={(e) => (selection = [action.producing])}
-                on:contextmenu|preventDefault={(e) => cancelAction(selected, action)}
+                on:contextmenu|preventDefault={(e) => selected.cancelAction(action)}
               >
                 {action.producing.type}
               </button>
@@ -114,8 +108,8 @@
             <div class="inprogress item">
               <button
                 class="producerType"
-                on:click={(e) => (selection = [action.producing])}
-                on:contextmenu|preventDefault={(e) => cancelAction(selected, action)}
+                on:click={(e) => e}
+                on:contextmenu|preventDefault={(e) => selected.cancelAction(action)}
               >
                 R
               </button>
@@ -133,12 +127,14 @@
           <div class="producerId">{count}</div>
         </div>
       {/each}
-        <div class="self item">
-          <div class="producerType">{selection.reduce((a,p)=>a+p.actionQueue.length,0)}</div>
-        </div>
+      <div class="self item">
+        <div class="producerType">{selection.reduce((a, p) => a + p.actionQueue.length, 0)}</div>
+      </div>
     {/if}
     <br />
-    <button on:click={researchClick}>research</button>
+    {#if !research['thing']}
+      <button on:click={(e) => researchClick('thing')}>research</button>
+    {/if}
     <br />
     <button on:click={createClick}>create</button>
     <button on:click={(e) => createClick(5)}>create 5</button>

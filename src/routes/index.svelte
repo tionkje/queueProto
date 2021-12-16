@@ -40,7 +40,10 @@
     research[name] = 'queued';
     const a = sel.enqueueWaitAction(10, () => (research[name] = 'done'));
     a.on('start', () => (research[name] = 'start'));
-      a.on('cancel', ()=>{ delete research[name]; research=research;});
+    a.on('cancel', () => {
+      delete research[name];
+      research = research;
+    });
   }
 
   function countTypes(producers) {

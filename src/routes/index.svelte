@@ -14,6 +14,7 @@
 
   let selection = [];
   let research = {};
+  let resources = { itium: 1 };
 
   function createClick(e) {
     let amount = 1;
@@ -27,9 +28,18 @@
       return a.actionQueue.length - b.actionQueue.length;
     })[0];
   }
+  function resourcePred(type, amount) {
+    return () => {
+      if (resources[type] >= amount) {
+        resources[type] -= amount;
+        return true;
+      }
+      return false;
+    };
+  }
   function createNewInSelected() {
     const sel = getSelectionHead();
-    const newp = sel.enqueueProduceAction(10).producing;
+    const newp = sel.enqueuePredProduceAction(resourcePred('itium', 1), 10).producing;
     newp.type = 'A';
     $dir.producers = $dir.producers;
   }
@@ -78,8 +88,10 @@
 </section>
 
 <section class="researched">
+  {JSON.stringify(resources, 0, 2)}
   {JSON.stringify(research, 0, 2)}
 </section>
+
 <section class="selection">
   {#if selection.length}
     {#if selection.length == 1}
@@ -89,7 +101,7 @@
             {selected.id}
           </div>
           {#if selected.paused && selected.produceAction}
-            <progress value={1 - selected.produceAction.timeLeft / selected.produceAction.totalTime} />
+            <progress value={1 - selected.produceAction.progress} />
           {/if}
         </div>
         {#each selected.actionQueue as action}
@@ -104,7 +116,7 @@
               </button>
               <div class="producerId">{action.producing.id}</div>
               {#if action.started}
-                <progress value={1 - action.timeLeft / action.totalTime} />
+                <progress value={1 - action.progress} />
               {/if}
             </div>
           {:else if action.type == 'WaitAction'}
@@ -117,7 +129,7 @@
                 R
               </button>
               {#if action.started}
-                <progress value={1 - action.timeLeft / action.totalTime} />
+                <progress value={1 - action.progress} />
               {/if}
             </div>
           {:else}Not implementd{/if}

@@ -18,11 +18,11 @@
   {#if producer.head}
     <div class="count">{producer.actionQueue.length || ''}</div>
     {#if !producer.paused && producer.head.started}
-      <progress value={1 - producer.head.timeLeft / producer.head.totalTime} />
+      <progress value={1 - producer.head.progress} />
     {/if}
   {/if}
   {#if producer.paused && producer.produceAction}
-    <progress value={1 - producer.produceAction.timeLeft / producer.produceAction.totalTime} />
+    <progress value={1 - producer.produceAction.progress} />
   {/if}
 </div>
 

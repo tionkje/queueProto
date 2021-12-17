@@ -12,7 +12,7 @@
     on:contextmenu|preventDefault={(e) =>
       selection.includes(producer) ? selection.splice(selection.indexOf(producer), 1) : selection.push(producer)}
   >
-    {producer.type}
+    {producer.producerType}
   </button>
   <div class="producerId">{producer.id}</div>
   {#if producer.head}

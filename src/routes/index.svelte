@@ -7,7 +7,7 @@
   function initDir() {
     const dir = new Manager();
     const op = dir.createUnpausedProducer();
-    op.type = 'A';
+    op.producerType = 'A';
     return dir;
   }
   const dir = writable(initDir());
@@ -28,10 +28,10 @@
       return a.actionQueue.length - b.actionQueue.length;
     })[0];
   }
-  function resourcePred(type, amount) {
+  function resourcePred(resourceType, amount) {
     return () => {
-      if (resources[type] >= amount) {
-        resources[type] -= amount;
+      if (resources[resourceType] >= amount) {
+        resources[resourceType] -= amount;
         return true;
       }
       return false;
@@ -40,7 +40,7 @@
   function createNewInSelected() {
     const sel = getSelectionHead();
     const newp = sel.enqueuePredProduceAction(resourcePred('itium', 1), 10).producing;
-    newp.type = 'A';
+    newp.producerType = 'A';
     $dir.producers = $dir.producers;
   }
   function gather(){
@@ -62,8 +62,8 @@
 
   function countTypes(producers) {
     const cobj = producers.reduce((c, p) => {
-      if (!c[p.type]) c[p.type] = 0;
-      c[p.type]++;
+      if (!c[p.producerType]) c[p.producerType] = 0;
+      c[p.producerType]++;
       return c;
     }, {});
     return Object.entries(cobj);
@@ -109,21 +109,21 @@
           {/if}
         </div>
         {#each selected.actionQueue as action}
-          {#if action.type == 'ProduceAction'}
+          {#if action.actionType == 'ProduceAction'}
             <div class="inprogress item">
               <button
                 class="producerType"
                 on:click={(e) => (selection = [action.producing])}
                 on:contextmenu|preventDefault={(e) => selected.cancelAction(action)}
               >
-                {action.producing.type}
+                {action.producing.producerType}
               </button>
               <div class="producerId">{action.producing.id}</div>
               {#if action.started}
                 <progress value={1 - action.progress} />
               {/if}
             </div>
-          {:else if action.type == 'WaitAction'}
+          {:else if action.actionType == 'WaitAction'}
             <div class="inprogress item">
               <button
                 class="producerType"
@@ -140,9 +140,9 @@
         {/each}
       {/each}
     {:else}
-      {#each countTypes(selection) as [type, count]}
+      {#each countTypes(selection) as [producerType, count]}
         <div class="self item">
-          <div class="producerType">{type}</div>
+          <div class="producerType">{producerType}</div>
           <div class="producerId">{count}</div>
         </div>
       {/each}

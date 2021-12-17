@@ -43,6 +43,10 @@
     newp.type = 'A';
     $dir.producers = $dir.producers;
   }
+  function gather(){
+    const sel = getSelectionHead();
+    sel.enqueueWaitAction(1, ()=>resources.itium+=1);
+  }
 
   function researchClick(name) {
     if (research[name]) return;
@@ -146,6 +150,8 @@
         <div class="producerType">{selection.reduce((a, p) => a + p.actionQueue.length, 0)}</div>
       </div>
     {/if}
+    <br />
+    <button on:click={(e) => gather()}>gather</button>
     <br />
     {#if !research['thing']}
       <button on:click={(e) => researchClick('thing')}>research</button>

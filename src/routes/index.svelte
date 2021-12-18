@@ -42,7 +42,7 @@
   function createNewInSelected() {
     const sel = getSelectionHead();
     const a = sel.enqueuePredProduceAction(resourcePred('itium', 1), 10);
-    a.kind = 'A';
+    a.actionKind = 'A';
     const newp = a.producing;
     newp.producerType = 'A';
     $dir.producers = $dir.producers;
@@ -50,7 +50,7 @@
   function gather() {
     const sel = getSelectionHead();
     const a = sel.enqueueWaitAction(1, () => (resources.itium += 1));
-    a.kind = 'g';
+    a.actionKind = 'g';
   }
   function infinigather() {
     const sel = getSelectionHead();
@@ -59,7 +59,7 @@
         resources.itium += 1;
         Q();
       });
-      a.kind = 'G';
+      a.actionKind = 'G';
     }
     Q();
   }
@@ -69,7 +69,7 @@
     const sel = getSelectionHead();
     research[name] = 'queued';
     const a = sel.enqueueWaitAction(10, () => (research[name] = 'done'));
-    a.kind = 'R';
+    a.actionKind = 'R';
     a.on('start', () => (research[name] = 'start'));
     a.on('cancel', () => {
       delete research[name];
@@ -129,12 +129,12 @@
           <div class="inprogress item">
             <button
               class="producerType"
-              on:click={(e) => ['A'].includes(action.kind) && (selection = [action.producing])}
+              on:click={(e) => ['A'].includes(action.actionKind) && (selection = [action.producing])}
               on:contextmenu|preventDefault={(e) => selected.cancelAction(action)}
             >
-              {action.kind}
+              {action.actionKind}
             </button>
-            {#if action.kind == 'A'}
+            {#if action.actionKind == 'A'}
               <div class="producerId">{action.producing.id}</div>
             {/if}
             <Progress action={action} />
@@ -235,17 +235,4 @@
     pointer-events: none;
   }
 
-  .item .count {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    background: black;
-    color: white;
-    padding: 2px 4px;
-    font-size: 0.5em;
-    font-weight: bold;
-    font-family: Arial;
-    opacity: 0.8;
-    pointer-events: none;
-  }
 </style>

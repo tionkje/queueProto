@@ -1,4 +1,5 @@
 <script>
+  import Progress from '$lib/Progress.svelte';
   export let selection = false;
   export let producer = null;
 </script>
@@ -17,12 +18,12 @@
   <div class="producerId">{producer.id}</div>
   {#if producer.head}
     <div class="count">{producer.actionQueue.length || ''}</div>
-    {#if !producer.paused && producer.head.started}
-      <progress value={1 - producer.head.progress} />
+    {#if !producer.paused}
+      <Progress action={producer.head} />
     {/if}
   {/if}
   {#if producer.paused && producer.produceAction}
-    <progress value={1 - producer.produceAction.progress} />
+    <Progress action={producer.produceAction} />
   {/if}
 </div>
 

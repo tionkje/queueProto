@@ -3,6 +3,7 @@
   import { writable } from 'svelte/store';
   import { onMount } from 'svelte';
   import Item from '$lib/Item.svelte';
+  import Progress from '$lib/Progress.svelte';
 
   function initDir() {
     const dir = new Manager();
@@ -121,7 +122,7 @@
             {selected.id}
           </div>
           {#if selected.paused && selected.produceAction}
-            <progress value={1 - selected.produceAction.progress} />
+            <Progress action={selected.produceAction} />
           {/if}
         </div>
         {#each selected.actionQueue as action}
@@ -136,9 +137,7 @@
             {#if action.kind == 'A'}
               <div class="producerId">{action.producing.id}</div>
             {/if}
-            {#if action.started}
-              <progress value={1 - action.progress} />
-            {/if}
+            <Progress action={action} />
           </div>
         {/each}
       {/each}
@@ -234,22 +233,6 @@
     bottom: 0;
     font-size: 0.5em;
     pointer-events: none;
-  }
-
-  .item progress {
-    pointer-events: none;
-    border: none;
-    width: 100%;
-    height: 100%;
-    background: transparent;
-    position: absolute;
-    opacity: 0.2;
-  }
-  .item progress[value]::-webkit-progress-bar {
-    background-color: transparent;
-  }
-  .item progress[value]::-webkit-progress-value {
-    background-color: black;
   }
 
   .item .count {

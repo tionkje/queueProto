@@ -24,6 +24,7 @@
   }
   function getSelectionHead() {
     return selection.slice().sort((a, b) => {
+      if (!!a.paused != !!b.paused) return !!a.paused - !!b.paused;
       // TODO: sort by time taken by actions. What to do for not determined action times? (guesstimate??)
       return a.actionQueue.length - b.actionQueue.length;
     })[0];
@@ -39,13 +40,27 @@
   }
   function createNewInSelected() {
     const sel = getSelectionHead();
-    const newp = sel.enqueuePredProduceAction(resourcePred('itium', 1), 10).producing;
+    const a = sel.enqueuePredProduceAction(resourcePred('itium', 1), 10);
+    a.kind = 'A';
+    const newp = a.producing;
     newp.producerType = 'A';
     $dir.producers = $dir.producers;
   }
-  function gather(){
+  function gather() {
     const sel = getSelectionHead();
-    sel.enqueueWaitAction(1, ()=>resources.itium+=1);
+    const a = sel.enqueueWaitAction(1, () => (resources.itium += 1));
+    a.kind = 'g';
+  }
+  function infinigather() {
+    const sel = getSelectionHead();
+    function Q() {
+      const a = sel.enqueueWaitAction(1, () => {
+        resources.itium += 1;
+        Q();
+      });
+      a.kind = 'G';
+    }
+    Q();
   }
 
   function researchClick(name) {
@@ -53,6 +68,7 @@
     const sel = getSelectionHead();
     research[name] = 'queued';
     const a = sel.enqueueWaitAction(10, () => (research[name] = 'done'));
+    a.kind = 'R';
     a.on('start', () => (research[name] = 'start'));
     a.on('cancel', () => {
       delete research[name];
@@ -109,34 +125,21 @@
           {/if}
         </div>
         {#each selected.actionQueue as action}
-          {#if action.actionType == 'ProduceAction'}
-            <div class="inprogress item">
-              <button
-                class="producerType"
-                on:click={(e) => (selection = [action.producing])}
-                on:contextmenu|preventDefault={(e) => selected.cancelAction(action)}
-              >
-                {action.producing.producerType}
-              </button>
+          <div class="inprogress item">
+            <button
+              class="producerType"
+              on:click={(e) => ['A'].includes(action.kind) && (selection = [action.producing])}
+              on:contextmenu|preventDefault={(e) => selected.cancelAction(action)}
+            >
+              {action.kind}
+            </button>
+            {#if action.kind == 'A'}
               <div class="producerId">{action.producing.id}</div>
-              {#if action.started}
-                <progress value={1 - action.progress} />
-              {/if}
-            </div>
-          {:else if action.actionType == 'WaitAction'}
-            <div class="inprogress item">
-              <button
-                class="producerType"
-                on:click={(e) => e}
-                on:contextmenu|preventDefault={(e) => selected.cancelAction(action)}
-              >
-                R
-              </button>
-              {#if action.started}
-                <progress value={1 - action.progress} />
-              {/if}
-            </div>
-          {:else}Not implementd{/if}
+            {/if}
+            {#if action.started}
+              <progress value={1 - action.progress} />
+            {/if}
+          </div>
         {/each}
       {/each}
     {:else}
@@ -152,6 +155,7 @@
     {/if}
     <br />
     <button on:click={(e) => gather()}>gather</button>
+    <button on:click={(e) => infinigather()}>infinigather</button>
     <br />
     {#if !research['thing']}
       <button on:click={(e) => researchClick('thing')}>research</button>

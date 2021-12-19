@@ -1,21 +1,30 @@
 <script>
   import { Manager } from 'queueDirector';
+  import { TechTree } from 'queueDirector';
   import { writable } from 'svelte/store';
   import { onMount } from 'svelte';
   import Item from '$lib/Item.svelte';
   import Progress from '$lib/Progress.svelte';
 
+  const TT = new TechTree({
+    A:{group:'P',cost:[1,'itium'],time:5,reqs:['A']},
+    B:{group:'P',cost:[1,'itium'],time:2,reqs:['A','R']},
+    R:{group:'R',cost:[10,'itium'],time:10,reqs:['A']},
+    G:{group:'G',cost:0,time:5,reqs:['A']},
+    G2:{group:'G',cost:0,time:1,reqs:['B']},
+  });
+  let selection = [];
+  let research = {};
+  let resources = { itium: 1 };
+
   function initDir() {
     const dir = new Manager();
     const op = dir.createUnpausedProducer();
-    op.producerType = 'A';
+    op.producerKind = 'A';
     return dir;
   }
   const dir = writable(initDir());
 
-  let selection = [];
-  let research = {};
-  let resources = { itium: 1 };
 
   function createClick(e) {
     let amount = 1;
@@ -44,8 +53,17 @@
     const a = sel.enqueuePredProduceAction(resourcePred('itium', 1), 10);
     a.actionKind = 'A';
     const newp = a.producing;
-    newp.producerType = 'A';
+    newp.producerKind = 'A';
     $dir.producers = $dir.producers;
+  }
+  function create(producer, kind){
+    const t = TT.tree[kind];
+    switch(t.group){
+      case 'P':
+        // producer.enqueuePredProduceAction(t.time, ()=>(resources.
+      break;
+    }
+
   }
   function gather() {
     const sel = getSelectionHead();
@@ -77,10 +95,11 @@
     });
   }
 
+
   function countTypes(producers) {
     const cobj = producers.reduce((c, p) => {
-      if (!c[p.producerType]) c[p.producerType] = 0;
-      c[p.producerType]++;
+      if (!c[p.producerKind]) c[p.producerKind] = 0;
+      c[p.producerKind]++;
       return c;
     }, {});
     return Object.entries(cobj);
@@ -140,11 +159,21 @@
             <Progress action={action} />
           </div>
         {/each}
+        <div>
+          {#each TT.getProduceOptions(selected.producerKind) as kind}
+          <div class="produceButton">
+            <button
+                on:click={e=>create(selected, kind)}>
+              {kind}
+            </button>
+          </div>
+          {/each}
+        </div>
       {/each}
     {:else}
-      {#each countTypes(selection) as [producerType, count]}
+      {#each countTypes(selection) as [producerKind, count]}
         <div class="self item">
-          <div class="producerType">{producerType}</div>
+          <div class="producerType">{producerKind}</div>
           <div class="producerId">{count}</div>
         </div>
       {/each}
@@ -206,7 +235,7 @@
   .selected {
     border: 1px solid black;
   }
-  .item {
+  .item,.produceButton {
     width: 50px;
     display: inline-flex;
     position: relative;
@@ -234,5 +263,11 @@
     font-size: 0.5em;
     pointer-events: none;
   }
+  
+  .produceButton button{
+    height: 50px;
+    width: 100%;
+  }
+
 
 </style>

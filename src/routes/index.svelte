@@ -212,7 +212,7 @@
           </div>
         {/each}
         <div>
-          {#each TT.getProduceOptions(selected.producerKind, research) as kind}
+          {#each TT.getProduceOptions(selected.producerKind, research).filter((x) => !research[x]) as kind}
             <div class="produceButton">
               <button on:click={(e) => create(selected, kind)}>
                 {kind}

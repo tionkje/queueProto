@@ -1,18 +1,16 @@
 <script>
-  import { Manager } from 'queueDirector';
-  import { TechTree } from 'queueDirector';
+  import { Manager, TechTree, Resource } from 'queueDirector';
   import { writable } from 'svelte/store';
   import { onMount } from 'svelte';
   import Item from '$lib/Item.svelte';
   import Progress from '$lib/Progress.svelte';
-  import { Resource } from './_Resource.js';
 
   const TT = new TechTree({
     A: { group: 'P', cost: [1, 'itium'], time: 5, reqs: ['A'] },
     B: { group: 'P', cost: [1, 'itium'], time: 2, reqs: ['A', 'R'] },
     R: { group: 'R', cost: [10, 'itium'], time: 10, reqs: ['A'] },
-    G: { group: 'G', cost: 0, time: 5, reqs: ['A'] },
-    G2: { group: 'G', cost: 0, time: 1, reqs: ['B'] }
+    G: { group: 'G', cost: [0], gather: [1, 'itium'], time: 5, reqs: ['A'] },
+    G2: { group: 'G', cost: [0], gather: [1, 'itium'], time: 1, reqs: ['B'] }
   });
   let selection = [];
   let research = {};
@@ -39,10 +37,15 @@
       return a.actionQueue.length - b.actionQueue.length;
     })[0];
   }
-  function resourcePred(resourceType, amount) {
+  function resourcePred(cost) {
+    if (!Array.isArray(cost)) cost = [cost];
+    if (!Array.isArray(cost[0])) cost = [cost];
+    cost = cost.filter(([a]) => a > 0);
+    if (cost.length == 0) return () => true;
+    cost = cost.map(([amount, resourceType]) => [amount, resources[resourceType]]);
     return () => {
-      if (resources[resourceType].canSpend(amount)) {
-        resources[resourceType].spend(amount);
+      if (cost.every(([amount, resource]) => resource.canSpend(amount))) {
+        cost.forEach(([amount, resource]) => resource.spend(amount));
         resources = resources;
         return true;
       }
@@ -51,19 +54,65 @@
   }
   function createNewInSelected() {
     const sel = getSelectionHead();
-    const a = sel.enqueuePredProduceAction(resourcePred('itium', 1), 10);
-    a.actionKind = 'A';
+    const a = sel.enqueuePredProduceAction(resourcePred([1, 'itium']), 10);
+    a.actionGroup = 'P';
     const newp = a.producing;
     newp.producerKind = 'A';
     $dir.producers = $dir.producers;
   }
+
+  function filterResearch(obj, key) {
+    if (!Array.isArray(key)) key = [key];
+    return Object.fromEntries(Object.entries(obj).filter(([k, v]) => key.includes(v)));
+  }
   function create(producer, kind) {
     const t = TT.tree[kind];
+    const rPred = resourcePred(t.cost);
+    const pred = () =>
+      TT.getProduceOptions(producer.producerKind, filterResearch(research, 'done')).includes(kind) && rPred();
+    let a;
     switch (t.group) {
       case 'P':
-        // producer.enqueuePredProduceAction(t.time, ()=>(resources.
+        a = produceProducer(producer, pred, t.time, kind);
         break;
+      case 'R':
+        a = produceResearch(producer, pred, t.time, kind);
+        break;
+      case 'G':
+        a = produceGather(producer, pred, t.time, t.gather);
+        break;
+      default:
+        throw new Error('Invalid group');
     }
+    a.actionGroup = t.group;
+  }
+  function produceProducer(producer, pred, time, kind) {
+    const a = producer.enqueuePredProduceAction(pred, time);
+    a.producing.producerKind = kind;
+    return a;
+  }
+  function produceResearch(producer, pred, time, kind) {
+    if (research[kind]) throw new Error('Multi research');
+    research[kind] = 'queued';
+    const a = producer.enqueuePredWaitAction(pred, time, () => {
+      research[kind] = 'done';
+      research = research;
+    });
+    a.on('start', () => (research[kind] = 'start'));
+    a.on('cancel', () => {
+      delete research[kind];
+      research = research;
+    });
+    return a;
+  }
+  function produceGather(producer, pred, time, gather) {
+    if (!Array.isArray(gather)) gather = [gather];
+    if (!Array.isArray(gather[0])) gather = [gather];
+    const a = producer.enqueuePredWaitAction(pred, time, () => {
+      gather.forEach(([amount, resourceType]) => resources[resourceType].gather(amount));
+      resources = resources;
+    });
+    return a;
   }
   function gather() {
     const sel = getSelectionHead();
@@ -71,7 +120,7 @@
       resources.itium.gather(1);
       resources = resources;
     });
-    a.actionKind = 'g';
+    a.actionGroup = 'g';
   }
   function infinigather() {
     const sel = getSelectionHead();
@@ -81,7 +130,7 @@
         resources = resources;
         Q();
       });
-      a.actionKind = 'G';
+      a.actionGroup = 'G';
     }
     Q();
   }
@@ -91,7 +140,7 @@
     const sel = getSelectionHead();
     research[name] = 'queued';
     const a = sel.enqueueWaitAction(10, () => (research[name] = 'done'));
-    a.actionKind = 'R';
+    a.actionGroup = 'R';
     a.on('start', () => (research[name] = 'start'));
     a.on('cancel', () => {
       delete research[name];
@@ -151,23 +200,24 @@
           <div class="inprogress item">
             <button
               class="producerType"
-              on:click={(e) => ['A'].includes(action.actionKind) && (selection = [action.producing])}
+              on:click={(e) => ['P'].includes(action.actionGroup) && (selection = [action.producing])}
               on:contextmenu|preventDefault={(e) => selected.cancelAction(action)}
             >
-              {action.actionKind}
+              {action.actionGroup}
             </button>
-            {#if action.actionKind == 'A'}
-              <div class="producerId">{action.producing.id}</div>
+            {#if action.actionGroup == 'P'}
+              <div class="badge">{action.producing.id}</div>
             {/if}
             <Progress {action} />
           </div>
         {/each}
         <div>
-          {#each TT.getProduceOptions(selected.producerKind) as kind}
+          {#each TT.getProduceOptions(selected.producerKind, research) as kind}
             <div class="produceButton">
               <button on:click={(e) => create(selected, kind)}>
                 {kind}
               </button>
+              <div class="badge">{TT.tree[kind].group}</div>
             </div>
           {/each}
         </div>
@@ -176,7 +226,7 @@
       {#each countTypes(selection) as [producerKind, count]}
         <div class="self item">
           <div class="producerType">{producerKind}</div>
-          <div class="producerId">{count}</div>
+          <div class="badge">{count}</div>
         </div>
       {/each}
       <div class="self item">
@@ -259,7 +309,7 @@
   .item button {
     border: none;
   }
-  .item .producerId {
+  .badge {
     position: absolute;
     left: 0;
     bottom: 0;

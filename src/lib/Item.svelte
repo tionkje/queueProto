@@ -15,7 +15,7 @@
   >
     {producer.producerKind}
   </button>
-  <div class="producerId">{producer.id}</div>
+  <div class="badge">{producer.id}</div>
   {#if producer.head}
     <div class="count">{producer.actionQueue.length || ''}</div>
     {#if !producer.paused}
@@ -85,7 +85,7 @@
     opacity: 0.8;
     pointer-events: none;
   }
-  .item .producerId {
+  .badge {
     position: absolute;
     left: 0;
     bottom: 0;

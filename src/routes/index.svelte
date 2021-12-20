@@ -14,7 +14,7 @@
   });
   let selection = [];
   let research = {};
-  let resources = { itium: new Resource(1) };
+  let resources = { itium: new Resource(20) };
 
   function initDir() {
     const dir = new Manager();
@@ -65,7 +65,7 @@
     if (!Array.isArray(key)) key = [key];
     return Object.fromEntries(Object.entries(obj).filter(([k, v]) => key.includes(v)));
   }
-  function create(producer, kind) {
+  function create(producer, kind, count=1) {
     const t = TT.tree[kind];
     const rPred = resourcePred(t.cost);
     const pred = () =>
@@ -77,6 +77,7 @@
         break;
       case 'R':
         a = produceResearch(producer, pred, t.time, kind);
+        count=1;
         break;
       case 'G':
         a = produceGather(producer, pred, t.time, t.gather);
@@ -85,6 +86,7 @@
         throw new Error('Invalid group');
     }
     a.actionGroup = t.group;
+    if(--count) a.on('finish',()=>create(producer,kind,count));
   }
   function produceProducer(producer, pred, time, kind) {
     const a = producer.enqueuePredProduceAction(pred, time);
@@ -113,39 +115,6 @@
       resources = resources;
     });
     return a;
-  }
-  function gather() {
-    const sel = getSelectionHead();
-    const a = sel.enqueueWaitAction(1, () => {
-      resources.itium.gather(1);
-      resources = resources;
-    });
-    a.actionGroup = 'g';
-  }
-  function infinigather() {
-    const sel = getSelectionHead();
-    function Q() {
-      const a = sel.enqueueWaitAction(1, () => {
-        resources.itium.gather(1);
-        resources = resources;
-        Q();
-      });
-      a.actionGroup = 'G';
-    }
-    Q();
-  }
-
-  function researchClick(name) {
-    if (research[name]) return;
-    const sel = getSelectionHead();
-    research[name] = 'queued';
-    const a = sel.enqueueWaitAction(10, () => (research[name] = 'done'));
-    a.actionGroup = 'R';
-    a.on('start', () => (research[name] = 'start'));
-    a.on('cancel', () => {
-      delete research[name];
-      research = research;
-    });
   }
 
   function countTypes(producers) {
@@ -214,7 +183,9 @@
         <div>
           {#each TT.getProduceOptions(selected.producerKind, research).filter((x) => !research[x]) as kind}
             <div class="produceButton">
-              <button on:click={(e) => create(selected, kind)}>
+              <button on:click={(e) => create(selected, kind)}
+              on:contextmenu|preventDefault={(e) => create(selected, kind,Infinity)}
+                >
                 {kind}
               </button>
               <div class="badge">{TT.tree[kind].group}</div>
@@ -233,20 +204,6 @@
         <div class="producerType">{selection.reduce((a, p) => a + p.actionQueue.length, 0)}</div>
       </div>
     {/if}
-    <br />
-    <button on:click={(e) => gather()}>gather</button>
-    <button on:click={(e) => infinigather()}>infinigather</button>
-    <br />
-    {#if !research['thing']}
-      <button on:click={(e) => researchClick('thing')}>research</button>
-    {/if}
-    <br />
-    <button on:click={createClick}>create</button>
-    <button on:click={(e) => createClick(5)}>create 5</button>
-    <button on:click={(e) => createClick(10)}>create 10</button>
-    <button on:click={(e) => createClick(20)}>create 20</button>
-    <button on:click={(e) => createClick(50)}>create 50</button>
-    <button on:click={(e) => createClick(100)}>create 100</button>
   {/if}
 </section>
 

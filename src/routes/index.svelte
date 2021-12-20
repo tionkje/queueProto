@@ -5,17 +5,18 @@
   import { onMount } from 'svelte';
   import Item from '$lib/Item.svelte';
   import Progress from '$lib/Progress.svelte';
+  import { Resource } from './_Resource.js';
 
   const TT = new TechTree({
-    A:{group:'P',cost:[1,'itium'],time:5,reqs:['A']},
-    B:{group:'P',cost:[1,'itium'],time:2,reqs:['A','R']},
-    R:{group:'R',cost:[10,'itium'],time:10,reqs:['A']},
-    G:{group:'G',cost:0,time:5,reqs:['A']},
-    G2:{group:'G',cost:0,time:1,reqs:['B']},
+    A: { group: 'P', cost: [1, 'itium'], time: 5, reqs: ['A'] },
+    B: { group: 'P', cost: [1, 'itium'], time: 2, reqs: ['A', 'R'] },
+    R: { group: 'R', cost: [10, 'itium'], time: 10, reqs: ['A'] },
+    G: { group: 'G', cost: 0, time: 5, reqs: ['A'] },
+    G2: { group: 'G', cost: 0, time: 1, reqs: ['B'] }
   });
   let selection = [];
   let research = {};
-  let resources = { itium: 1 };
+  let resources = { itium: new Resource(1) };
 
   function initDir() {
     const dir = new Manager();
@@ -24,7 +25,6 @@
     return dir;
   }
   const dir = writable(initDir());
-
 
   function createClick(e) {
     let amount = 1;
@@ -41,8 +41,9 @@
   }
   function resourcePred(resourceType, amount) {
     return () => {
-      if (resources[resourceType] >= amount) {
-        resources[resourceType] -= amount;
+      if (resources[resourceType].canSpend(amount)) {
+        resources[resourceType].spend(amount);
+        resources = resources;
         return true;
       }
       return false;
@@ -56,25 +57,28 @@
     newp.producerKind = 'A';
     $dir.producers = $dir.producers;
   }
-  function create(producer, kind){
+  function create(producer, kind) {
     const t = TT.tree[kind];
-    switch(t.group){
+    switch (t.group) {
       case 'P':
         // producer.enqueuePredProduceAction(t.time, ()=>(resources.
-      break;
+        break;
     }
-
   }
   function gather() {
     const sel = getSelectionHead();
-    const a = sel.enqueueWaitAction(1, () => (resources.itium += 1));
+    const a = sel.enqueueWaitAction(1, () => {
+      resources.itium.gather(1);
+      resources = resources;
+    });
     a.actionKind = 'g';
   }
   function infinigather() {
     const sel = getSelectionHead();
     function Q() {
       const a = sel.enqueueWaitAction(1, () => {
-        resources.itium += 1;
+        resources.itium.gather(1);
+        resources = resources;
         Q();
       });
       a.actionKind = 'G';
@@ -94,7 +98,6 @@
       research = research;
     });
   }
-
 
   function countTypes(producers) {
     const cobj = producers.reduce((c, p) => {
@@ -156,17 +159,16 @@
             {#if action.actionKind == 'A'}
               <div class="producerId">{action.producing.id}</div>
             {/if}
-            <Progress action={action} />
+            <Progress {action} />
           </div>
         {/each}
         <div>
           {#each TT.getProduceOptions(selected.producerKind) as kind}
-          <div class="produceButton">
-            <button
-                on:click={e=>create(selected, kind)}>
-              {kind}
-            </button>
-          </div>
+            <div class="produceButton">
+              <button on:click={(e) => create(selected, kind)}>
+                {kind}
+              </button>
+            </div>
           {/each}
         </div>
       {/each}
@@ -235,7 +237,8 @@
   .selected {
     border: 1px solid black;
   }
-  .item,.produceButton {
+  .item,
+  .produceButton {
     width: 50px;
     display: inline-flex;
     position: relative;
@@ -263,11 +266,9 @@
     font-size: 0.5em;
     pointer-events: none;
   }
-  
-  .produceButton button{
+
+  .produceButton button {
     height: 50px;
     width: 100%;
   }
-
-
 </style>

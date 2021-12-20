@@ -65,7 +65,7 @@
     if (!Array.isArray(key)) key = [key];
     return Object.fromEntries(Object.entries(obj).filter(([k, v]) => key.includes(v)));
   }
-  function create(producer, kind, count=1) {
+  function create(producer, kind, count = 1) {
     const t = TT.tree[kind];
     const rPred = resourcePred(t.cost);
     const pred = () =>
@@ -77,7 +77,7 @@
         break;
       case 'R':
         a = produceResearch(producer, pred, t.time, kind);
-        count=1;
+        count = 1;
         break;
       case 'G':
         a = produceGather(producer, pred, t.time, t.gather);
@@ -86,7 +86,7 @@
         throw new Error('Invalid group');
     }
     a.actionGroup = t.group;
-    if(--count) a.on('finish',()=>create(producer,kind,count));
+    if (--count) a.on('finish', () => create(producer, kind, count));
   }
   function produceProducer(producer, pred, time, kind) {
     const a = producer.enqueuePredProduceAction(pred, time);
@@ -183,9 +183,10 @@
         <div>
           {#each TT.getProduceOptions(selected.producerKind, research).filter((x) => !research[x]) as kind}
             <div class="produceButton">
-              <button on:click={(e) => create(selected, kind)}
-              on:contextmenu|preventDefault={(e) => create(selected, kind,Infinity)}
-                >
+              <button
+                on:click={(e) => create(selected, kind)}
+                on:contextmenu|preventDefault={(e) => create(selected, kind, Infinity)}
+              >
                 {kind}
               </button>
               <div class="badge">{TT.tree[kind].group}</div>

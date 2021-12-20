@@ -15,6 +15,7 @@
   let selection = [];
   let research = {};
   let resources = { itium: new Resource(20) };
+  const populationLimit = 200;
 
   function initDir() {
     const dir = new Manager();
@@ -69,7 +70,9 @@
     const t = TT.tree[kind];
     const rPred = resourcePred(t.cost);
     const pred = () =>
-      TT.getProduceOptions(producer.producerKind, filterResearch(research, 'done')).includes(kind) && rPred();
+      (t.group != 'P' || $dir.producers.filter((x) => !x.paused).length < populationLimit) &&
+      TT.getProduceOptions(producer.producerKind, filterResearch(research, 'done')).includes(kind) &&
+      rPred();
     let a;
     switch (t.group) {
       case 'P':

@@ -196,6 +196,9 @@
             </div>
           {/each}
         </div>
+        <div>
+          <button on:click={e=>{$dir.removeProducer(selected); selection.splice(selection.indexOf(selected),1)}}>X</button>
+        </div>
       {/each}
     {:else}
       {#each countTypes(selection) as [producerKind, count]}

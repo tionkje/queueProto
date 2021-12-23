@@ -25,12 +25,12 @@
     return dir;
   }
   const dir = writable(initDir());
-  
+
   let debug = false;
-  onMount(()=>{
-    const e = ()=>debug = !!document.location.hash.match(/dev|debug/i)
-    window.addEventListener('hashchange',e);
-    return ()=>window.removeEventListener('hashchange',e);
+  onMount(() => {
+    const e = () => (debug = !!document.location.hash.match(/dev|debug/i));
+    window.addEventListener('hashchange', e);
+    return () => window.removeEventListener('hashchange', e);
   });
 
   function getSelectionHead() {
@@ -140,107 +140,111 @@
 </script>
 
 <main class="mainLayout">
-
   {#if debug}
-<fieldset class="controls">
-  <legend>Controls</legend>
-  <button on:click={(e) => (paused = !paused)}>
-    {#if paused} Go {:else} Pause {/if}
-  </button>
-</fieldset>
+    <fieldset class="controls">
+      <legend>Controls</legend>
+      <button on:click={(e) => (paused = !paused)}>
+        {#if paused} Go {:else} Pause {/if}
+      </button>
+    </fieldset>
 
-<fieldset class="researched">
-  <legend>Research</legend>
-  {#each Object.entries(research) as [research, status]}
-    <div class="research {status}">{research}</div>
-  {/each}
-</fieldset>
-{/if}
+    <fieldset class="researched">
+      <legend>Research</legend>
+      {#each Object.entries(research) as [research, status]}
+        <div class="research {status}">{research}</div>
+      {/each}
+    </fieldset>
+  {/if}
 
-<fieldset class="researched">
-  <legend>Resources</legend>
-  {#each Object.entries(resources) as [resource, amount]}
-    {resource} {amount}
-  {/each}
-</fieldset>
+  <fieldset class="researched">
+    <legend>Resources</legend>
+    {#each Object.entries(resources) as [resource, amount]}
+      {resource} {amount}
+    {/each}
+  </fieldset>
 
-{#if selection.length}
-<fieldset class="selection">
-  <legend>Selection</legend>
   {#if selection.length}
-    {#if selection.length == 1}
-      {#each selection as selected}
-        <div class="self item">
-          <div class="producerType">
-            {selected.id}
-          </div>
-          {#if selected.paused && selected.produceAction}
-            <Progress action={selected.produceAction} />
-          {/if}
-        </div>
-        {#each selected.actionQueue as action}
-          <div class="inprogress item">
-            <button
-              class="producerType"
-              on:click={(e) => ['P'].includes(action.actionGroup) && (selection = [action.producing])}
-              on:contextmenu|preventDefault={(e) => selected.cancelAction(action)}
-            >
-              {action.actionGroup}
-            </button>
-            {#if action.actionGroup == 'P'}
-              <div class="badge">{action.producing.id}</div>
-            {/if}
-            <Progress {action} />
-          </div>
-        {/each}
-        <div>
-          {#each TT.getProduceOptions(selected.producerKind, research).filter((x) => !research[x]) as kind}
-            <div class="produceButton">
+    <fieldset class="selection">
+      <legend>Selection</legend>
+      {#if selection.length}
+        {#if selection.length == 1}
+          {#each selection as selected}
+            <div class="self item">
+              <div class="producerType">
+                {selected.id}
+              </div>
+              {#if selected.paused && selected.produceAction}
+                <Progress action={selected.produceAction} />
+              {/if}
+            </div>
+            {#each selected.actionQueue as action}
+              <div class="inprogress item">
+                <button
+                  class="producerType"
+                  on:click={(e) => ['P'].includes(action.actionGroup) && (selection = [action.producing])}
+                  on:contextmenu|preventDefault={(e) => selected.cancelAction(action)}
+                >
+                  {action.actionGroup}
+                </button>
+                {#if action.actionGroup == 'P'}
+                  <div class="badge">{action.producing.id}</div>
+                {/if}
+                <Progress {action} />
+              </div>
+            {/each}
+            <div>
+              {#each TT.getProduceOptions(selected.producerKind, research).filter((x) => !research[x]) as kind}
+                <div class="produceButton">
+                  <button
+                    on:click={(e) => create(selected, kind)}
+                    on:contextmenu|preventDefault={(e) => create(selected, kind, Infinity)}
+                  >
+                    {kind}
+                  </button>
+                  <div class="badge">{TT.tree[kind].group}</div>
+                </div>
+              {/each}
+            </div>
+            <div>
               <button
-                on:click={(e) => create(selected, kind)}
-                on:contextmenu|preventDefault={(e) => create(selected, kind, Infinity)}
+                on:click={(e) => {
+                  $dir.removeProducer(selected);
+                  selection.splice(selection.indexOf(selected), 1);
+                }}>X</button
               >
-                {kind}
-              </button>
-              <div class="badge">{TT.tree[kind].group}</div>
             </div>
           {/each}
-        </div>
-        <div>
-          <button on:click={e=>{$dir.removeProducer(selected); selection.splice(selection.indexOf(selected),1)}}>X</button>
-        </div>
-      {/each}
-    {:else}
-      {#each countTypes(selection) as [producerKind, count]}
-        <div class="self item">
-          <div class="producerType">{producerKind}</div>
-          <div class="badge">{count}</div>
-        </div>
-      {/each}
-      <div class="self item">
-        <div class="producerType">{selection.reduce((a, p) => a + p.actionQueue.length, 0)}</div>
-      </div>
-    {/if}
+        {:else}
+          {#each countTypes(selection) as [producerKind, count]}
+            <div class="self item">
+              <div class="producerType">{producerKind}</div>
+              <div class="badge">{count}</div>
+            </div>
+          {/each}
+          <div class="self item">
+            <div class="producerType">{selection.reduce((a, p) => a + p.actionQueue.length, 0)}</div>
+          </div>
+        {/if}
+      {/if}
+    </fieldset>
   {/if}
-</fieldset>
-{/if}
 
-<fieldset class="field">
-  <legend>Field</legend>
-  <!-- <button on:click={(e) => (selection = $dir.producers)}>select all</button> -->
-  <br />
-  {#each $dir.producers.filter((x) => !x.paused) as p, i}
-    <Item bind:selection bind:producer={p} />
-  {/each}
-  <br />
-  {#each $dir.producers.filter((x) => x.paused) as p, i}
-    <Item bind:selection bind:producer={p} />
-  {/each}
-</fieldset>
+  <fieldset class="field">
+    <legend>Field</legend>
+    <!-- <button on:click={(e) => (selection = $dir.producers)}>select all</button> -->
+    <br />
+    {#each $dir.producers.filter((x) => !x.paused) as p, i}
+      <Item bind:selection bind:producer={p} />
+    {/each}
+    <br />
+    {#each $dir.producers.filter((x) => x.paused) as p, i}
+      <Item bind:selection bind:producer={p} />
+    {/each}
+  </fieldset>
 
-<!-- <pre>{JSON.stringify($dir,0,2)}</pre> -->
-
+  <!-- <pre>{JSON.stringify($dir,0,2)}</pre> -->
 </main>
+
 <style>
   :global(body) {
     font-family: Arial;
@@ -250,8 +254,8 @@
     font-size: inherit;
     font-family: inherit;
   }
-  main.mainLayout{
-    display:grid;
+  main.mainLayout {
+    display: grid;
   }
   .paused {
     opacity: 0.6;

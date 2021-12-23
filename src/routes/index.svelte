@@ -12,6 +12,7 @@
     G: { group: 'G', cost: [0], gather: [1, 'itium'], time: 5, reqs: ['A'] },
     G2: { group: 'G', cost: [0], gather: [1, 'itium'], time: 1, reqs: ['B'] }
   });
+
   let selection = [];
   let research = {};
   let resources = { itium: new Resource(20) };
@@ -24,13 +25,14 @@
     return dir;
   }
   const dir = writable(initDir());
+  
+  let debug = false;
+  onMount(()=>{
+    const e = ()=>debug = !!document.location.hash.match(/dev|debug/i)
+    window.addEventListener('hashchange',e);
+    return ()=>window.removeEventListener('hashchange',e);
+  });
 
-  function createClick(e) {
-    let amount = 1;
-    if (typeof e == 'number') amount = e;
-    else if (e.shiftKey) amount = 5;
-    for (let i = 0; i < amount; i++) createNewInSelected();
-  }
   function getSelectionHead() {
     return selection.slice().sort((a, b) => {
       if (!!a.paused != !!b.paused) return !!a.paused - !!b.paused;
@@ -52,14 +54,6 @@
       }
       return false;
     };
-  }
-  function createNewInSelected() {
-    const sel = getSelectionHead();
-    const a = sel.enqueuePredProduceAction(resourcePred([1, 'itium']), 10);
-    a.actionGroup = 'P';
-    const newp = a.producing;
-    newp.producerKind = 'A';
-    $dir.producers = $dir.producers;
   }
 
   function filterResearch(obj, key) {
@@ -145,18 +139,34 @@
   let paused = false;
 </script>
 
-<section class="controls">
+<main class="mainLayout">
+
+  {#if debug}
+<fieldset class="controls">
+  <legend>Controls</legend>
   <button on:click={(e) => (paused = !paused)}>
     {#if paused} Go {:else} Pause {/if}
   </button>
-</section>
+</fieldset>
 
-<section class="researched">
-  {JSON.stringify(resources, 0, 2)}
-  {JSON.stringify(research, 0, 2)}
-</section>
+<fieldset class="researched">
+  <legend>Research</legend>
+  {#each Object.entries(research) as [research, status]}
+    <div class="research {status}">{research}</div>
+  {/each}
+</fieldset>
+{/if}
 
-<section class="selection">
+<fieldset class="researched">
+  <legend>Resources</legend>
+  {#each Object.entries(resources) as [resource, amount]}
+    {resource} {amount}
+  {/each}
+</fieldset>
+
+{#if selection.length}
+<fieldset class="selection">
+  <legend>Selection</legend>
   {#if selection.length}
     {#if selection.length == 1}
       {#each selection as selected}
@@ -212,10 +222,12 @@
       </div>
     {/if}
   {/if}
-</section>
+</fieldset>
+{/if}
 
-<section class="field">
-  <button on:click={(e) => (selection = $dir.producers)}>select all</button>
+<fieldset class="field">
+  <legend>Field</legend>
+  <!-- <button on:click={(e) => (selection = $dir.producers)}>select all</button> -->
   <br />
   {#each $dir.producers.filter((x) => !x.paused) as p, i}
     <Item bind:selection bind:producer={p} />
@@ -224,10 +236,11 @@
   {#each $dir.producers.filter((x) => x.paused) as p, i}
     <Item bind:selection bind:producer={p} />
   {/each}
-</section>
+</fieldset>
 
-<pre>{JSON.stringify($dir,0,2)}</pre>
+<!-- <pre>{JSON.stringify($dir,0,2)}</pre> -->
 
+</main>
 <style>
   :global(body) {
     font-family: Arial;
@@ -237,10 +250,13 @@
     font-size: inherit;
     font-family: inherit;
   }
+  main.mainLayout{
+    display:grid;
+  }
   .paused {
     opacity: 0.6;
   }
-  section {
+  fieldset {
     margin: 10px 0px;
     border: 1px solid grey;
   }

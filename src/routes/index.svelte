@@ -5,25 +5,33 @@
   import Item from '$lib/Item.svelte';
   import Progress from '$lib/Progress.svelte';
 
+  // Visuals
+  const U = { dead:'💀', traktor:'🚜 ', face:'😶', grain:'🌾',tree:'🌳', book:'📖', people:'👥'};
+  const resource1 = U.grain;
+
+  // Tech Tree
   const TT = new TechTree({
-    A: { group: 'P', cost: [1, 'itium'], time: 5, reqs: ['A'] },
-    B: { group: 'P', cost: [1, 'itium'], time: 2, reqs: ['A', 'R'] },
-    R: { group: 'R', cost: [10, 'itium'], time: 10, reqs: ['A'] },
-    G: { group: 'G', cost: [0], gather: [1, 'itium'], time: 5, reqs: ['A'] },
-    G2: { group: 'G', cost: [0], gather: [1, 'itium'], time: 1, reqs: ['B'] }
+    [U.face]: { group: 'P', cost: [1,resource1], time: 10, reqs: [U.face] },
+    [U.book]: { group: 'R', cost: [20,resource1], time: 60, reqs: [U.face] },
+    [U.grain]: { group: 'G', cost: [0], gather: [1,resource1], time: 10, reqs: [U.face] },
+
+    [U.traktor]: { group: 'P', cost: [5,resource1], time: 2, reqs: [U.face,U.book] },
+    [U.tree]: { group: 'G', cost: [0], gather: [10,resource1], time: 1, reqs: [U.traktor] }
   });
 
-  let selection = [];
+  // initial state
   let research = {};
-  let resources = { itium: new Resource(20) };
+  let resources = { [resource1]: new Resource(0) };
   const populationLimit = 20;
 
+  let selection = [];
   $: population = $dir.producers.filter((x) => !x.paused).length;
 
   function initDir() {
     const dir = new Manager();
     const op = dir.createUnpausedProducer();
-    op.producerKind = 'A';
+    // op.producerKind = U.face;
+    op.producerKind = Object.keys(TT.tree)[0];
     return dir;
   }
   const dir = writable(initDir());
@@ -35,13 +43,6 @@
     return () => window.removeEventListener('hashchange', e);
   });
 
-  function getSelectionHead() {
-    return selection.slice().sort((a, b) => {
-      if (!!a.paused != !!b.paused) return !!a.paused - !!b.paused;
-      // TODO: sort by time taken by actions. What to do for not determined action times? (guesstimate??)
-      return a.actionQueue.length - b.actionQueue.length;
-    })[0];
-  }
   function resourcePred(cost) {
     if (!Array.isArray(cost)) cost = [cost];
     if (!Array.isArray(cost[0])) cost = [cost];
@@ -66,7 +67,7 @@
     const t = TT.tree[kind];
     const rPred = resourcePred(t.cost);
     const pred = () =>
-      (t.group != 'P' || popupation < populationLimit) &&
+      (t.group != 'P' || population < populationLimit) &&
       TT.getProduceOptions(producer.producerKind, filterResearch(research, 'done')).includes(kind) &&
       rPred();
     let a;
@@ -116,6 +117,14 @@
     return a;
   }
 
+  function selfDestruct(producer){
+    const a = producer.enqueueWaitAction(0,()=>{
+      $dir.removeProducer(producer);
+      if(selection.includes(producer)) selection.splice(selection.indexOf(producer), 1);
+    });
+    a.actionGroup = U.dead;
+  }
+
   function countTypes(producers) {
     const cobj = producers.reduce((c, p) => {
       if (!c[p.producerKind]) c[p.producerKind] = 0;
@@ -123,6 +132,14 @@
       return c;
     }, {});
     return Object.entries(cobj);
+  }
+
+  function getSelectionHead() {
+    return selection.slice().sort((a, b) => {
+      if (!!a.paused != !!b.paused) return !!a.paused - !!b.paused;
+      // TODO: sort by time taken by actions. What to do for not determined action times? (guesstimate??)
+      return a.actionQueue.length - b.actionQueue.length;
+    })[0];
   }
 
   onMount(() => {
@@ -163,7 +180,7 @@
     {#each Object.entries(resources) as [resource, amount]}
       <div>{resource} {amount}</div>
     {/each}
-    <div>population {population}/{populationLimit}</div>
+    <div>{U.people} {population}/{populationLimit}</div>
 
   </fieldset>
 
@@ -210,12 +227,10 @@
               {/each}
             </div>
             <div>
-              <button
-                on:click={(e) => {
-                  $dir.removeProducer(selected);
-                  selection.splice(selection.indexOf(selected), 1);
-                }}>X</button
-              >
+                <div class="produceButton">
+                  <button
+                on:click={(e) => selfDestruct(selected)}>{U.dead}</button>
+                </div>
             </div>
           {/each}
         {:else}
@@ -236,11 +251,14 @@
   <fieldset class="field">
     <legend>Field</legend>
     <!-- <button on:click={(e) => (selection = $dir.producers)}>select all</button> -->
-    <br />
+    <!-- <br /> -->
     {#each $dir.producers.filter((x) => !x.paused) as p, i}
       <Item bind:selection bind:producer={p} />
     {/each}
-    <br />
+  </fieldset>
+
+  <fieldset class="field">
+    <legend>Expected</legend>
     {#each $dir.producers.filter((x) => x.paused) as p, i}
       <Item bind:selection bind:producer={p} />
     {/each}
@@ -271,6 +289,8 @@
   .selection {
     background-color: #fffde7;
     height: 200px;
+    position:fixed;
+    bottom:0;
   }
   .selected {
     border: 1px solid black;

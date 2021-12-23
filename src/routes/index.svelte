@@ -1,5 +1,5 @@
 <script>
-  import { Manager, TechTree, Resource } from 'queueDirector';
+  import { Manager, TechTree, Resource } from '@tionkje/queuelib';
   import { writable } from 'svelte/store';
   import { onMount } from 'svelte';
   import Item from '$lib/Item.svelte';

@@ -23,6 +23,6 @@
     "@tionkje/queuelib": "latest"
   },
   "lint-staged": {
-    "*.{js,css,md}": "prettier --write"
+    "*.{js,css,md,svelte}": "prettier --ignore-path .gitignore --write --plugin-search-dir=. ."
   }
 }

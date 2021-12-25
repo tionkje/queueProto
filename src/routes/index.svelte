@@ -47,8 +47,8 @@
   }
 
   $: if ($hash.match(/testcase/)) TESTCASE1();
-function TESTCASE1() {
-  dir.set(new Manager());
+  function TESTCASE1() {
+    dir.set(new Manager());
     research = {};
     resources = { [resource1]: new Resource(2) };
     populationLimit = 3;

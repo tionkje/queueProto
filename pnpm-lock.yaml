@@ -4,16 +4,18 @@ specifiers:
   '@sveltejs/adapter-auto': next
   '@sveltejs/kit': next
   '@tionkje/queuelib': latest
+  husky: ^7.0.4
   prettier: ^2.5.1
   prettier-plugin-svelte: ^2.5.1
   svelte: ^3.44.3
 
 dependencies:
-  '@tionkje/queuelib': 0.0.3
+  '@tionkje/queuelib': 0.0.5
 
 devDependencies:
   '@sveltejs/adapter-auto': 1.0.0-next.4
   '@sveltejs/kit': 1.0.0-next.202_svelte@3.44.3
+  husky: 7.0.4
   prettier: 2.5.1
   prettier-plugin-svelte: 2.5.1_prettier@2.5.1+svelte@3.44.3
   svelte: 3.44.3
@@ -102,8 +104,8 @@ packages:
       - supports-color
     dev: true
 
-  /@tionkje/queuelib/0.0.3:
-    resolution: {integrity: sha512-P3IzemPhExwhVsuTANGLYhXRFRA/NmqlEG3c4A/Nv0vQIW+Sn0Hweg9c17bgoJ/OsEtAHkYvFIfuIpc9e2L0cg==}
+  /@tionkje/queuelib/0.0.5:
+    resolution: {integrity: sha512-99+l2dPw9vmsY6r4DicThwoMQjFEHEB2HMvLbvf+9aUobqcilbEZR6afyvSrc/wNj/2HQ5moyNMNx2WFVEa9KQ==}
     dev: false
 
   /cheap-watch/1.0.4:
@@ -288,6 +290,12 @@ packages:
       function-bind: 1.1.1
     dev: true
 
+  /husky/7.0.4:
+    resolution: {integrity: sha512-vbaCKN2QLtP/vD4yvs6iz6hBEo6wkSzs8HpRah1Z6aGmF2KW5PdYuAd7uX5a+OyBZHBhd+TFLqgjUgytQr4RvQ==}
+    engines: {node: '>=12'}
+    hasBin: true
+    dev: true
+
   /is-core-module/2.8.0:
     resolution: {integrity: sha512-vd15qHsaqrRL7dtH6QNuy0ndJmRDrS9HAM1CAiSifNUFv4x1a0CCVsj18hJ1mShxIG6T2i1sO78MkP56r0nYRw==}
     dependencies:
@@ -369,8 +377,8 @@ packages:
       path-parse: 1.0.7
     dev: true
 
-  /rollup/2.61.1:
-    resolution: {integrity: sha512-BbTXlEvB8d+XFbK/7E5doIcRtxWPRiqr0eb5vQ0+2paMM04Ye4PZY5nHOQef2ix24l/L0SpLd5hwcH15QHPdvA==}
+  /rollup/2.62.0:
+    resolution: {integrity: sha512-cJEQq2gwB0GWMD3rYImefQTSjrPYaC6s4J9pYqnstVLJ1CHa/aZNVkD4Epuvg4iLeMA4KRiq7UM7awKK6j7jcw==}
     engines: {node: '>=10.0.0'}
     hasBin: true
     optionalDependencies:
@@ -425,7 +433,7 @@ packages:
       esbuild: 0.13.15
       postcss: 8.4.5
       resolve: 1.20.0
-      rollup: 2.61.1
+      rollup: 2.62.0
     optionalDependencies:
       fsevents: 2.3.2
     dev: true

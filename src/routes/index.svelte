@@ -47,7 +47,7 @@
   }
 
   $: if ($hash.match(/testcase/)) TESTCASE1();
-  function TESTCASE1() {
+function TESTCASE1() {
     dir.set(new Manager());
     research = {};
     resources = { [resource1]: new Resource(2) };

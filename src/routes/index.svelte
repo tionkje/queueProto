@@ -71,10 +71,13 @@
     cost = cost.filter(([a]) => a > 0);
     if (cost.length == 0) return () => true;
     cost = cost.map(([amount, resourceType]) => [amount, resources[resourceType]]);
+    let gathered = false;
     return () => {
+      if (gathered) return true;
       if (cost.every(([amount, resource]) => resource.canSpend(amount))) {
         cost.forEach(([amount, resource]) => resource.spend(amount));
         resources = resources;
+        gathered = true;
         return true;
       }
       return false;
@@ -87,21 +90,30 @@
   }
   function create(producer, kind, count = 1) {
     const t = TT.tree[kind];
-    const rPred = resourcePred(t.cost);
-    const pred = () =>
-      (t.group != 'P' || $dir.unPausedProducers.length < populationLimit) &&
-      TT.getProduceOptions(producer.producerKind, filterResearch(research, 'done')).includes(kind) &&
-      rPred();
+    const _resourcePred = resourcePred(t.cost);
+    const populationPred = () => $dir.unPausedProducers.length < populationLimit;
+    const techTreePred = () =>
+      TT.getProduceOptions(producer.producerKind, filterResearch(research, 'done')).includes(kind);
     let a;
     switch (t.group) {
       case 'P':
-        a = produceProducer(producer, pred, t.time, kind);
+        {
+          let pred = () => populationPred() && techTreePred() && _resourcePred();
+          let postPred = () => {
+            return populationPred() && techTreePred();
+          };
+          a = produceProducer(producer, pred, postPred, t.time, kind);
+        }
         break;
       case 'R':
-        a = produceResearch(producer, pred, t.time, kind);
-        count = 1;
+        {
+          let pred = () => techTreePred() && _resourcePred();
+          a = produceResearch(producer, pred, t.time, kind);
+          count = 1;
+        }
         break;
       case 'G':
+        let pred = () => techTreePred() && _resourcePred();
         a = produceGather(producer, pred, t.time, t.gather);
         break;
       default:
@@ -110,8 +122,8 @@
     a.actionGroup = t.group;
     if (--count) a.on('finish', () => create(producer, kind, count));
   }
-  function produceProducer(producer, pred, time, kind) {
-    const a = producer.enqueuePredProduceAction(pred, time);
+  function produceProducer(producer, pred, postPred, time, kind) {
+    const a = producer.enqueuePredProduceAction(pred, time, postPred);
     a.producing.producerKind = kind;
     return a;
   }

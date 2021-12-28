@@ -17,7 +17,16 @@
   $: debug = $hash.match(/dev|debug/i);
 
   // Visuals
-  const U = { dead: '💀', traktor: '🚜 ', face: '😶', grain: '🌾', tree: '🌳', book: '📖', people: '👥' };
+  const U = {
+    dead: '💀',
+    traktor: '🚜 ',
+    face: '😶',
+    grain: '🌾',
+    tree: '🌳',
+    book: '📖',
+    people: '👥',
+    infinity: '∞'
+  };
   const resource1 = U.grain;
 
   // Tech Tree
@@ -86,10 +95,11 @@
 
   function filterResearch(obj, key) {
     if (!Array.isArray(key)) key = [key];
-    return Object.fromEntries(Object.entries(obj).filter(([k, v]) => key.includes(v)));
+    return Object.fromEntries(Object.entries(obj).filter(([, v]) => key.includes(v)));
   }
   function queueNewAction(producer, kind, count = 1) {
-    if (producer.head?.actionKind == kind) return (producer.head.actionCount += count);
+    const lastAction = producer.actionQueue.slice(-1)[0];
+    if (lastAction?.actionKind === kind) return (lastAction.actionCount += count);
     const t = TT.tree[kind];
     const _resourcePred = resourcePred(t.cost);
     const populationPred = () => $dir.unPausedProducers.length < populationLimit;
@@ -255,7 +265,7 @@
                   {action.actionKind}
                 </button>
                 <div class="badge bl">{action.actionGroup}</div>
-                <div class="badge br">{action.actionCount}</div>
+                <div class="badge br">{isFinite(action.actionCount) ? action.actionCount : U.infinity}</div>
                 <Progress {action} />
               </div>
             {/each}

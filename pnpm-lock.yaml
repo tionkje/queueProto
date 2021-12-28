@@ -10,7 +10,7 @@ specifiers:
   svelte: ^3.44.3
 
 dependencies:
-  '@tionkje/queuelib': 0.0.6
+  '@tionkje/queuelib': link:../queueDirector
 
 devDependencies:
   '@sveltejs/adapter-auto': 1.0.0-next.4
@@ -103,10 +103,6 @@ packages:
     transitivePeerDependencies:
       - supports-color
     dev: true
-
-  /@tionkje/queuelib/0.0.6:
-    resolution: {integrity: sha512-VwEsSJOimZLhm1XgYfVO7FTfIMJIa0E0MVGifRjKRj7hF94ZHz8pNqAdv0Zw88XE/6qGW6AjERHThKsS5D3WWA==}
-    dev: false
 
   /cheap-watch/1.0.4:
     resolution: {integrity: sha512-QR/9FrtRL5fjfUJBhAKCdi0lSRQ3rVRRum3GF9wDKp2TJbEIMGhUEr2yU8lORzm9Isdjx7/k9S0DFDx+z5VGtw==}

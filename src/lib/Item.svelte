@@ -20,7 +20,7 @@
   </button>
   <div class="badge bl">{producer.id}</div>
   {#if producer.head}
-    <div class="badge br">{util.printCount(producer.actionQueue.reduce((s, a) => s + a.actionCount, 0) || '')}</div>
+    <div class="badge br">{util.printCount(producer.actionCount())}</div>
     {#if !producer.paused}
       <Progress action={producer.head} />
     {/if}

@@ -52,14 +52,22 @@
 
   defaultStart();
 
+  function initProducer(producer, kind) {
+    producer.actionCount = () => producer.actionQueue.reduce((s, a) => s + a.actionCount, 0);
+    producer.producerKind = kind;
+  }
+
   function defaultStart() {
     dir.set(new Manager());
     research = {};
     resources = { [resource1]: new Resource(0) };
     populationLimit = 200;
     const op = $dir.createUnpausedProducer();
-    // op.producerKind = U.face;
-    op.producerKind = Object.keys(TT.tree)[0];
+    initProducer(
+      op,
+      //  U.face
+      Object.keys(TT.tree)[0]
+    );
   }
 
   $: if ($hash.match(/testcase/)) TESTCASE1();
@@ -69,9 +77,23 @@
     resources = { [resource1]: new Resource(2) };
     populationLimit = 4;
     const op = $dir.createUnpausedProducer();
+    initProducer(op, Object.keys(TT.tree)[0]);
     const op2 = $dir.createUnpausedProducer();
-    op.producerKind = Object.keys(TT.tree)[0];
-    op2.producerKind = Object.keys(TT.tree)[0];
+    initProducer(op2, Object.keys(TT.tree)[0]);
+    queueNewAction(op, U.face);
+    // queueNewAction(op2, U.face);
+  }
+
+  $: if ($hash.match(/tc2/)) TESTCASE2();
+  function TESTCASE2() {
+    dir.set(new Manager());
+    research = {};
+    resources = { [resource1]: new Resource(2) };
+    populationLimit = 4;
+    const op = $dir.createUnpausedProducer();
+    initProducer(op, Object.keys(TT.tree)[0]);
+    const op2 = $dir.createUnpausedProducer();
+    initProducer(op2, Object.keys(TT.tree)[0]);
     queueNewAction(op, U.face);
     // queueNewAction(op2, U.face);
   }
@@ -105,6 +127,7 @@
     return Object.fromEntries(Object.entries(obj).filter(([, v]) => key.includes(v)));
   }
   function queueNewAction(producer, kind, count = 1) {
+    if (!producer || count == 0) return;
     const lastAction = producer.actionQueue.slice(-1)[0];
     if (lastAction?.actionKind === kind) return (lastAction.actionCount += count);
     const t = TT.tree[kind];
@@ -142,9 +165,10 @@
     a.actionCount = count;
     if (a.actionCount >= 1) a.on('finish', () => queueNewAction(producer, kind, a.actionCount - 1));
   }
+
   function produceProducer(producer, pred, postPred, time, kind) {
     const a = producer.enqueuePredProduceAction(pred, time, postPred);
-    a.producing.producerKind = kind;
+    initProducer(a.producing, kind);
     return a;
   }
   function produceResearch(producer, pred, time, kind) {
@@ -172,11 +196,14 @@
   }
 
   function selfDestruct(producer) {
+    if (!producer) return;
     const a = producer.enqueueWaitAction(0, () => {
       $dir.removeProducer(producer);
       if (selection.includes(producer)) selection.splice(selection.indexOf(producer), 1);
     });
     a.actionGroup = U.dead;
+    a.actionKind = U.dead;
+    a.actionCount = 1;
   }
 
   function countTypes(producers) {
@@ -188,8 +215,13 @@
     return Object.entries(cobj);
   }
 
-  function getSelectionHead() {
-    return selection.slice().sort((a, b) => {
+  function getSelectionHeadNoDead(selection) {
+    return getSelectionHead(selection, true);
+  }
+  function getSelectionHead(selection, noDead) {
+    var sel = selection.slice();
+    if (noDead) sel = sel.filter((p) => !p.actionQueue.find((a) => a.actionKind === U.dead));
+    return sel.sort((a, b) => {
       if (!!a.paused != !!b.paused) return !!a.paused - !!b.paused;
       // TODO: sort by time taken by actions. What to do for not determined action times? (guesstimate??)
       return a.actionQueue.length - b.actionQueue.length;
@@ -303,11 +335,31 @@
             <div class="self item">
               <div class="producerType">{producerKind}</div>
               <div class="badge bl">{count}</div>
+              <div class="badge br">
+                {util.printCount(
+                  selection.filter((p) => p.producerKind == producerKind).reduce((s, p) => s + p.actionCount(), 0)
+                )}
+              </div>
+            </div>
+            <div>
+              {#each TT.getProduceOptions(producerKind, research).filter((x) => !research[x]) as kind}
+                <div class="produceButton">
+                  <button
+                    on:click={(e) => queueNewAction(getSelectionHead(selection), kind)}
+                    on:contextmenu|preventDefault={(e) => queueNewAction(getSelectionHead(selection), kind, Infinity)}
+                  >
+                    {kind}
+                  </button>
+                  <div class="badge tl">{TT.tree[kind].group}</div>
+                </div>
+              {/each}
+            </div>
+            <div>
+              <div class="produceButton">
+                <button on:click={(e) => selfDestruct(getSelectionHeadNoDead(selection))}>{U.dead}</button>
+              </div>
             </div>
           {/each}
-          <div class="self item">
-            <div class="producerType">{selection.reduce((a, p) => a + p.actionQueue.length, 0)}</div>
-          </div>
         {/if}
       {/if}
     </fieldset>

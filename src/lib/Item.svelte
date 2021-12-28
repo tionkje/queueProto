@@ -1,7 +1,10 @@
 <script>
   import Progress from '$lib/Progress.svelte';
+  import { getContext } from 'svelte';
   export let selection = false;
   export let producer = null;
+
+  const util = getContext('util');
 </script>
 
 <div class="producers item" class:selected={selection.includes(producer)} class:paused={producer.paused}>
@@ -17,7 +20,7 @@
   </button>
   <div class="badge bl">{producer.id}</div>
   {#if producer.head}
-    <div class="badge br">{producer.actionQueue.length || ''}</div>
+    <div class="badge br">{util.printCount(producer.actionQueue.reduce((s, a) => s + a.actionCount, 0) || '')}</div>
     {#if !producer.paused}
       <Progress action={producer.head} />
     {/if}

@@ -1,7 +1,7 @@
 <script>
   import { Manager, TechTree, Resource } from '@tionkje/queuelib';
   import { writable, readable } from 'svelte/store';
-  import { onMount } from 'svelte';
+  import { onMount, setContext } from 'svelte';
   import Item from '$lib/Item.svelte';
   import Progress from '$lib/Progress.svelte';
 
@@ -28,6 +28,13 @@
     infinity: '∞'
   };
   const resource1 = U.grain;
+
+  setContext('U', U);
+
+  const util = {};
+  setContext('util', util);
+
+  util.printCount = (c) => (isFinite(c) ? c : U.infinity);
 
   // Tech Tree
   const TT = new TechTree({
@@ -268,7 +275,7 @@
                   <div class="badge bl">{action.producing.id}</div>
                 {/if}
                 <div class="badge tl">{action.actionGroup}</div>
-                <div class="badge br">{isFinite(action.actionCount) ? action.actionCount : U.infinity}</div>
+                <div class="badge br">{util.printCount(action.actionCount)}</div>
                 <Progress {action} />
               </div>
             {/each}

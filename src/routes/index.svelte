@@ -120,6 +120,7 @@
         throw new Error('Invalid group');
     }
     a.actionGroup = t.group;
+    a.actionKind = kind;
     if (--count) a.on('finish', () => create(producer, kind, count));
   }
   function produceProducer(producer, pred, postPred, time, kind) {
@@ -249,11 +250,9 @@
                   on:click={(e) => ['P'].includes(action.actionGroup) && (selection = [action.producing])}
                   on:contextmenu|preventDefault={(e) => selected.cancelAction(action)}
                 >
-                  {action.actionGroup}
+                  {action.actionKind}
                 </button>
-                {#if action.actionGroup == 'P'}
-                  <div class="badge">{action.producing.id}</div>
-                {/if}
+                <div class="badge">{action.actionGroup}</div>
                 <Progress {action} />
               </div>
             {/each}

@@ -56,8 +56,8 @@
     const op2 = $dir.createUnpausedProducer();
     op.producerKind = Object.keys(TT.tree)[0];
     op2.producerKind = Object.keys(TT.tree)[0];
-    create(op, U.face);
-    // create(op2, U.face);
+    queueNewAction(op, U.face);
+    // queueNewAction(op2, U.face);
   }
 
   let selection = [];
@@ -88,7 +88,8 @@
     if (!Array.isArray(key)) key = [key];
     return Object.fromEntries(Object.entries(obj).filter(([k, v]) => key.includes(v)));
   }
-  function create(producer, kind, count = 1) {
+  function queueNewAction(producer, kind, count = 1) {
+    if (producer.head?.actionKind == kind) return (producer.head.actionCount += count);
     const t = TT.tree[kind];
     const _resourcePred = resourcePred(t.cost);
     const populationPred = () => $dir.unPausedProducers.length < populationLimit;
@@ -121,7 +122,8 @@
     }
     a.actionGroup = t.group;
     a.actionKind = kind;
-    if (--count) a.on('finish', () => create(producer, kind, count));
+    a.actionCount = count;
+    if (a.actionCount >= 1) a.on('finish', () => queueNewAction(producer, kind, a.actionCount - 1));
   }
   function produceProducer(producer, pred, postPred, time, kind) {
     const a = producer.enqueuePredProduceAction(pred, time, postPred);
@@ -252,7 +254,8 @@
                 >
                   {action.actionKind}
                 </button>
-                <div class="badge">{action.actionGroup}</div>
+                <div class="badge bl">{action.actionGroup}</div>
+                <div class="badge br">{action.actionCount}</div>
                 <Progress {action} />
               </div>
             {/each}
@@ -260,12 +263,12 @@
               {#each TT.getProduceOptions(selected.producerKind, research).filter((x) => !research[x]) as kind}
                 <div class="produceButton">
                   <button
-                    on:click={(e) => create(selected, kind)}
-                    on:contextmenu|preventDefault={(e) => create(selected, kind, Infinity)}
+                    on:click={(e) => queueNewAction(selected, kind)}
+                    on:contextmenu|preventDefault={(e) => queueNewAction(selected, kind, Infinity)}
                   >
                     {kind}
                   </button>
-                  <div class="badge">{TT.tree[kind].group}</div>
+                  <div class="badge bl">{TT.tree[kind].group}</div>
                 </div>
               {/each}
             </div>
@@ -279,7 +282,7 @@
           {#each countTypes(selection) as [producerKind, count]}
             <div class="self item">
               <div class="producerType">{producerKind}</div>
-              <div class="badge">{count}</div>
+              <div class="badge bl">{count}</div>
             </div>
           {/each}
           <div class="self item">
@@ -368,14 +371,25 @@
   .item button {
     border: none;
   }
+
   .badge {
     position: absolute;
-    left: 0;
-    bottom: 0;
+    padding: 2px 4px;
     font-size: 0.5em;
+    font-family: Arial;
     pointer-events: none;
   }
-
+  .badge.br {
+    right: 0;
+    bottom: 0;
+    background: black;
+    color: white;
+    opacity: 0.8;
+  }
+  .badge.bl {
+    left: 0;
+    bottom: 0;
+  }
   .produceButton button {
     height: 50px;
     width: 100%;

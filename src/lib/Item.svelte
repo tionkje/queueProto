@@ -15,9 +15,9 @@
   >
     {producer.producerKind}
   </button>
-  <div class="badge">{producer.id}</div>
+  <div class="badge bl">{producer.id}</div>
   {#if producer.head}
-    <div class="count">{producer.actionQueue.length || ''}</div>
+    <div class="badge br">{producer.actionQueue.length || ''}</div>
     {#if !producer.paused}
       <Progress action={producer.head} />
     {/if}
@@ -42,22 +42,6 @@
     border: 1px solid black;
   }
 
-  .item progress {
-    pointer-events: none;
-    border: none;
-    width: 100%;
-    height: 100%;
-    background: transparent;
-    position: absolute;
-    opacity: 0.2;
-  }
-  .item progress[value]::-webkit-progress-bar {
-    background-color: transparent;
-  }
-  .item progress[value]::-webkit-progress-value {
-    background-color: black;
-  }
-
   .item button {
     border: none;
   }
@@ -72,24 +56,22 @@
     justify-content: center;
     background: #d6d6d6;
   }
-  .item .count {
+  .badge {
     position: absolute;
+    padding: 2px 4px;
+    font-size: 0.5em;
+    font-family: Arial;
+    pointer-events: none;
+  }
+  .badge.br {
     right: 0;
     bottom: 0;
     background: black;
     color: white;
-    padding: 2px 4px;
-    font-size: 0.5em;
-    font-weight: bold;
-    font-family: Arial;
     opacity: 0.8;
-    pointer-events: none;
   }
-  .badge {
-    position: absolute;
+  .badge.bl {
     left: 0;
     bottom: 0;
-    font-size: 0.5em;
-    pointer-events: none;
   }
 </style>

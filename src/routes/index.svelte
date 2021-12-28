@@ -264,7 +264,10 @@
                 >
                   {action.actionKind}
                 </button>
-                <div class="badge bl">{action.actionGroup}</div>
+                {#if action.producing}
+                  <div class="badge bl">{action.producing.id}</div>
+                {/if}
+                <div class="badge tl">{action.actionGroup}</div>
                 <div class="badge br">{isFinite(action.actionCount) ? action.actionCount : U.infinity}</div>
                 <Progress {action} />
               </div>
@@ -278,7 +281,7 @@
                   >
                     {kind}
                   </button>
-                  <div class="badge bl">{TT.tree[kind].group}</div>
+                  <div class="badge tl">{TT.tree[kind].group}</div>
                 </div>
               {/each}
             </div>
@@ -399,6 +402,10 @@
   .badge.bl {
     left: 0;
     bottom: 0;
+  }
+  .badge.tl {
+    left: 0;
+    top: 0;
   }
   .produceButton button {
     height: 50px;

@@ -49,6 +49,7 @@
   // initial state
   let research, resources, populationLimit;
   const dir = writable(new Manager());
+  setContext('dir', dir);
 
   defaultStart();
 
@@ -298,7 +299,8 @@
               <div class="inprogress item">
                 <button
                   class="producerType"
-                  on:click={(e) => ['P'].includes(action.actionGroup) && (selection = [action.producing])}
+                  on:click={(e) =>
+                    ['P'].includes(action.actionGroup) && (selection = [action.producing])}
                   on:contextmenu|preventDefault={(e) => selected.cancelAction(action)}
                 >
                   {action.actionKind}
@@ -337,7 +339,9 @@
               <div class="badge bl">{count}</div>
               <div class="badge br">
                 {util.printCount(
-                  selection.filter((p) => p.producerKind == producerKind).reduce((s, p) => s + p.actionCount(), 0)
+                  selection
+                    .filter((p) => p.producerKind == producerKind)
+                    .reduce((s, p) => s + p.actionCount(), 0)
                 )}
               </div>
             </div>
@@ -346,7 +350,8 @@
                 <div class="produceButton">
                   <button
                     on:click={(e) => queueNewAction(getSelectionHead(selection), kind)}
-                    on:contextmenu|preventDefault={(e) => queueNewAction(getSelectionHead(selection), kind, Infinity)}
+                    on:contextmenu|preventDefault={(e) =>
+                      queueNewAction(getSelectionHead(selection), kind, Infinity)}
                   >
                     {kind}
                   </button>
@@ -356,7 +361,9 @@
             </div>
             <div>
               <div class="produceButton">
-                <button on:click={(e) => selfDestruct(getSelectionHeadNoDead(selection))}>{U.dead}</button>
+                <button on:click={(e) => selfDestruct(getSelectionHeadNoDead(selection))}
+                  >{U.dead}</button
+                >
               </div>
             </div>
           {/each}

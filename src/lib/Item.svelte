@@ -4,18 +4,32 @@
   export let selection = false;
   export let producer = null;
 
+  const dir = getContext('dir');
   const util = getContext('util');
+
+  function onClick(e) {
+    if (e.detail > 1) {
+      selection = $dir.producers.filter(
+        (p) => p.producerKind == producer.producerKind && p.paused === producer.paused
+      );
+      return;
+    }
+    if (selection.includes(producer) && selection.length == 1)
+      selection = selection.filter((x) => x != producer);
+    else selection = [producer];
+  }
+  function onRightClick(e) {
+    if (selection.includes(producer)) selection.splice(selection.indexOf(producer), 1);
+    else selection.push(producer);
+  }
 </script>
 
-<div class="producers item" class:selected={selection.includes(producer)} class:paused={producer.paused}>
-  <button
-    class="producerType"
-    on:click={(e) =>
-      (selection =
-        selection.includes(producer) && selection.length == 1 ? selection.filter((x) => x != producer) : [producer])}
-    on:contextmenu|preventDefault={(e) =>
-      selection.includes(producer) ? selection.splice(selection.indexOf(producer), 1) : selection.push(producer)}
-  >
+<div
+  class="producers item"
+  class:selected={selection.includes(producer)}
+  class:paused={producer.paused}
+>
+  <button class="producerType" on:click={onClick} on:contextmenu|preventDefault={onRightClick}>
     {producer.producerKind}
   </button>
   <div class="badge bl">{producer.id}</div>

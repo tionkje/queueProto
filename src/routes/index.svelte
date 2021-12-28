@@ -61,7 +61,7 @@
   function defaultStart() {
     dir.set(new Manager());
     research = {};
-    resources = { [resource1]: new Resource(0) };
+    resources = { [resource1]: new Resource(100) };
     populationLimit = 200;
     const op = $dir.createUnpausedProducer();
     initProducer(
@@ -101,9 +101,6 @@
 
   let selection = [];
 
-  const population = writable(1);
-  $: $population = $dir.unPausedProducers.length;
-
   function resourcePred(cost) {
     if (!Array.isArray(cost)) cost = [cost];
     if (!Array.isArray(cost[0])) cost = [cost];
@@ -111,8 +108,15 @@
     if (cost.length == 0) return () => true;
     cost = cost.map(([amount, resourceType]) => [amount, resources[resourceType]]);
     let gathered = false;
-    return () => {
-      if (gathered) return true;
+    return (success = true) => {
+      if (gathered) {
+        if (!success) {
+          cost.forEach(([amount, resource]) => resource.gather(amount));
+          resources = resources;
+          return;
+        }
+        return true;
+      }
       if (cost.every(([amount, resource]) => resource.canSpend(amount))) {
         cost.forEach(([amount, resource]) => resource.spend(amount));
         resources = resources;
@@ -165,6 +169,7 @@
     a.actionKind = kind;
     a.actionCount = count;
     if (a.actionCount >= 1) a.on('finish', () => queueNewAction(producer, kind, a.actionCount - 1));
+    a.on('cancel', () => _resourcePred(false));
   }
 
   function produceProducer(producer, pred, postPred, time, kind) {
@@ -278,7 +283,7 @@
     {#each Object.entries(resources) as [resource, amount]}
       <div>{resource} {amount}</div>
     {/each}
-    <div>{U.people} {$population}/{populationLimit}</div>
+    <div>{U.people} {$dir.unPausedProducers.length}/{populationLimit}</div>
   </fieldset>
 
   {#if selection.length}

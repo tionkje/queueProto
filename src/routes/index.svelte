@@ -40,7 +40,7 @@
     dir.set(new Manager());
     research = {};
     resources = { [resource1]: new Resource(0) };
-    populationLimit = 20;
+    populationLimit = 200;
     const op = $dir.createUnpausedProducer();
     // op.producerKind = U.face;
     op.producerKind = Object.keys(TT.tree)[0];
@@ -51,13 +51,13 @@
     dir.set(new Manager());
     research = {};
     resources = { [resource1]: new Resource(2) };
-    populationLimit = 3;
+    populationLimit = 4;
     const op = $dir.createUnpausedProducer();
     const op2 = $dir.createUnpausedProducer();
     op.producerKind = Object.keys(TT.tree)[0];
     op2.producerKind = Object.keys(TT.tree)[0];
     create(op, U.face);
-    create(op2, U.face);
+    // create(op2, U.face);
   }
 
   let selection = [];
@@ -176,11 +176,12 @@
     })[0];
   }
 
+  let speed = 1;
   onMount(() => {
     let prev = performance.now();
     function loop() {
       let now = performance.now();
-      const dt = (now - prev) / 1000;
+      const dt = ((now - prev) / 1000) * speed;
       if (!paused) $dir.evaluate(dt);
       prev = now;
       $dir = $dir;
@@ -188,6 +189,13 @@
       requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
+  });
+
+  import { crossfade, fade } from 'svelte/transition';
+  const [send, receive] = crossfade({
+    duration: 1500,
+    // easing: quintOut
+    fallback: fade
   });
   let paused = false;
 </script>
@@ -199,6 +207,9 @@
       <button on:click={(e) => (paused = !paused)}>
         {#if paused} Go {:else} Pause {/if}
       </button>
+      {speed}
+      <button on:click={(e) => (speed *= 2)}> faster </button>
+      <button on:click={(e) => (speed /= 2)}> slower </button>
     </fieldset>
 
     <fieldset class="researched">
@@ -284,15 +295,19 @@
     <legend>Field</legend>
     <!-- <button on:click={(e) => (selection = $dir.producers)}>select all</button> -->
     <!-- <br /> -->
-    {#each $dir.unPausedProducers.filter((x) => !x.paused) as p, i}
-      <Item bind:selection bind:producer={p} />
+    {#each $dir.unPausedProducers.filter((x) => !x.paused) as p}
+      <div class="fieldItem" in:send={{ key: p.id }} out:receive={{ key: p.id }}>
+        <Item bind:selection bind:producer={p} />
+      </div>
     {/each}
   </fieldset>
 
   <fieldset class="field">
     <legend>Expected</legend>
-    {#each $dir.pausedProducers.filter((x) => x.paused) as p, i}
-      <Item bind:selection bind:producer={p} />
+    {#each $dir.pausedProducers.filter((x) => x.paused) as p}
+      <div class="fieldItem" in:send={{ key: p.id }} out:receive={{ key: p.id }}>
+        <Item bind:selection bind:producer={p} />
+      </div>
     {/each}
   </fieldset>
 
@@ -317,6 +332,10 @@
   fieldset {
     margin: 10px 0px;
     border: 1px solid grey;
+  }
+  .field {
+    display: flex;
+    flex-wrap: wrap;
   }
   .selection {
     background-color: #fffde7;

@@ -6,8 +6,8 @@
     "build": "svelte-kit build",
     "package": "svelte-kit package",
     "preview": "svelte-kit preview",
-    "lint": "prettier --ignore-path .gitignore --check --plugin-search-dir=. .",
-    "format": "prettier --ignore-path .gitignore --write --plugin-search-dir=. .",
+    "lint": "prettier --check --plugin-search-dir=. .",
+    "format": "prettier --write --plugin-search-dir=. .",
     "prepare": "husky install"
   },
   "devDependencies": {
@@ -23,6 +23,6 @@
     "@tionkje/queuelib": "latest"
   },
   "lint-staged": {
-    "*.{js,css,md,svelte}": "prettier --ignore-path .gitignore --write --plugin-search-dir=. ."
+    "*.{js,css,md,svelte}": "prettier --write --plugin-search-dir=. ."
   }
 }

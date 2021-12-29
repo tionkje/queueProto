@@ -230,7 +230,7 @@
     return sel.sort((a, b) => {
       if (!!a.paused != !!b.paused) return !!a.paused - !!b.paused;
       // TODO: sort by time taken by actions. What to do for not determined action times? (guesstimate??)
-      return a.actionQueue.length - b.actionQueue.length;
+      return a.actionCount() - b.actionCount();
     })[0];
   }
 
@@ -284,6 +284,26 @@
       <div>{resource} {amount}</div>
     {/each}
     <div>{U.people} {$dir.unPausedProducers.length}/{populationLimit}</div>
+  </fieldset>
+
+  <fieldset class="field">
+    <legend>Field</legend>
+    <!-- <button on:click={(e) => (selection = $dir.producers)}>select all</button> -->
+    <!-- <br /> -->
+    {#each $dir.unPausedProducers.filter((x) => !x.paused) as p}
+      <div class="fieldItem" in:send={{ key: p.id }} out:receive={{ key: p.id }}>
+        <Item bind:selection bind:producer={p} />
+      </div>
+    {/each}
+  </fieldset>
+
+  <fieldset class="field">
+    <legend>Expected</legend>
+    {#each $dir.pausedProducers.filter((x) => x.paused) as p}
+      <div class="fieldItem" in:send={{ key: p.id }} out:receive={{ key: p.id }}>
+        <Item bind:selection bind:producer={p} />
+      </div>
+    {/each}
   </fieldset>
 
   {#if selection.length}
@@ -377,26 +397,6 @@
     </fieldset>
   {/if}
 
-  <fieldset class="field">
-    <legend>Field</legend>
-    <!-- <button on:click={(e) => (selection = $dir.producers)}>select all</button> -->
-    <!-- <br /> -->
-    {#each $dir.unPausedProducers.filter((x) => !x.paused) as p}
-      <div class="fieldItem" in:send={{ key: p.id }} out:receive={{ key: p.id }}>
-        <Item bind:selection bind:producer={p} />
-      </div>
-    {/each}
-  </fieldset>
-
-  <fieldset class="field">
-    <legend>Expected</legend>
-    {#each $dir.pausedProducers.filter((x) => x.paused) as p}
-      <div class="fieldItem" in:send={{ key: p.id }} out:receive={{ key: p.id }}>
-        <Item bind:selection bind:producer={p} />
-      </div>
-    {/each}
-  </fieldset>
-
   <!-- <pre>{JSON.stringify($dir,0,2)}</pre> -->
 </main>
 
@@ -426,9 +426,10 @@
   .selection {
     background-color: #fffde7;
     height: 200px;
-    position: fixed;
+    position: sticky;
     bottom: 0;
     right: 0;
+    z-index: 1;
   }
   .selected {
     border: 1px solid black;
@@ -481,5 +482,10 @@
   .produceButton button {
     height: 50px;
     width: 100%;
+  }
+  legend {
+    background: white;
+    padding: 5px;
+    border: 1px solid #0000005e;
   }
 </style>

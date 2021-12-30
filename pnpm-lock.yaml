@@ -10,11 +10,11 @@ specifiers:
   svelte: ^3.44.3
 
 dependencies:
-  '@tionkje/queuelib': link:../queueDirector
+  '@tionkje/queuelib': 0.0.7
 
 devDependencies:
-  '@sveltejs/adapter-auto': 1.0.0-next.4
-  '@sveltejs/kit': 1.0.0-next.202_svelte@3.44.3
+  '@sveltejs/adapter-auto': 1.0.0-next.6
+  '@sveltejs/kit': 1.0.0-next.208_svelte@3.44.3
   husky: 7.0.4
   prettier: 2.5.1
   prettier-plugin-svelte: 2.5.1_prettier@2.5.1+svelte@3.44.3
@@ -34,35 +34,36 @@ packages:
       picomatch: 2.3.0
     dev: true
 
-  /@sveltejs/adapter-auto/1.0.0-next.4:
-    resolution: {integrity: sha512-kfygrjF2uIgVVDsySl7I9oWSekU6adJCr/3qzLQDLM4FJ98FWmfhj4OOWsmF9X4JRPSm97t3RPugYsN3NLwKMQ==}
+  /@sveltejs/adapter-auto/1.0.0-next.6:
+    resolution: {integrity: sha512-3cSxTAmomcIj6RQzhUf4O4Q5+FHCIW1s5kTsUMlnUrhs0NNELT8zfjsZ33qJSYSVma51ozo3V8N9HEJP+Ha4ow==}
     dependencies:
-      '@sveltejs/adapter-cloudflare': 1.0.0-next.3
-      '@sveltejs/adapter-netlify': 1.0.0-next.36
-      '@sveltejs/adapter-vercel': 1.0.0-next.32
+      '@sveltejs/adapter-cloudflare': 1.0.0-next.5
+      '@sveltejs/adapter-netlify': 1.0.0-next.37
+      '@sveltejs/adapter-vercel': 1.0.0-next.33
     dev: true
 
-  /@sveltejs/adapter-cloudflare/1.0.0-next.3:
-    resolution: {integrity: sha512-LauvvkBFCE8myGMLWOncv97/xU8JJn9OMl1miy8f/q8qs0CrduvR1sv2uCM9AylqT/FNPy3mony5wpe3w1v7sg==}
+  /@sveltejs/adapter-cloudflare/1.0.0-next.5:
+    resolution: {integrity: sha512-I7kLcINJz0zik+ufb+IAWSn/EHxdTdmGF0M3tizd87Cxw2ke7N/A6XF8YrYDgZ/4yrAcZnR8Texas/5WxPYZ6g==}
     dependencies:
       esbuild: 0.13.15
     dev: true
 
-  /@sveltejs/adapter-netlify/1.0.0-next.36:
-    resolution: {integrity: sha512-LdrIXCTBnIubtt/lthcnyt5VljuHpZlVzUqpWXk9Eu6bpNKblqQLMHkTBQfIbPfanmNSDZXJQVsdcFLqF2/+Cw==}
+  /@sveltejs/adapter-netlify/1.0.0-next.37:
+    resolution: {integrity: sha512-Advp53rLMsi9Kg3GYVwWFTmqzIIKCJ2WTrm2zx12Q37RrO+HaY2R+sRMGGGrjD2fk6w1qR7WR9Qt9p0n3moUbw==}
     dependencies:
       '@iarna/toml': 2.2.5
       esbuild: 0.13.15
+      tiny-glob: 0.2.9
     dev: true
 
-  /@sveltejs/adapter-vercel/1.0.0-next.32:
-    resolution: {integrity: sha512-ZcltaS5bAobGD5P0z7xJIjPHSlGpF7padMIkqTzJxwMEb/acGgdO5yzDS8XUEaSNgj+prpD2oG8+gm33ds8x0A==}
+  /@sveltejs/adapter-vercel/1.0.0-next.33:
+    resolution: {integrity: sha512-7an9TyvF+oSaj35WZC1nReajLyq647T3+IXEzG8/MzsTs3oJ2nnIOkrSfCSdeZ7uKZ+Q2TGPjDbloDnrMoRkYA==}
     dependencies:
       esbuild: 0.13.15
     dev: true
 
-  /@sveltejs/kit/1.0.0-next.202_svelte@3.44.3:
-    resolution: {integrity: sha512-rXmJ0FplkWvD1CaeCfejRYhOJYrlmeUm5Fkw7gIKDdWPQev5rqOhd9B9ZvRpq35oMqCAwaOfK+e5S6k+83feEQ==}
+  /@sveltejs/kit/1.0.0-next.208_svelte@3.44.3:
+    resolution: {integrity: sha512-4iHhkne7WvJPLRh/WNnm0NgbLpYz95aju44RkdpfMTyZMC9IMnKidHG/mPC7PPNh3OxQdWGuxjAe383rzJrHPQ==}
     engines: {node: '>=14.13'}
     hasBin: true
     peerDependencies:
@@ -103,6 +104,10 @@ packages:
     transitivePeerDependencies:
       - supports-color
     dev: true
+
+  /@tionkje/queuelib/0.0.7:
+    resolution: {integrity: sha512-FQ/8aI1EOQLgsPlpUMJuA29zXs9jPKx9OptHOSve4sYZYO+9OJXcWgooEgtB/idUlIc1R1G0kBtDrrDfpHM/dw==}
+    dev: false
 
   /cheap-watch/1.0.4:
     resolution: {integrity: sha512-QR/9FrtRL5fjfUJBhAKCdi0lSRQ3rVRRum3GF9wDKp2TJbEIMGhUEr2yU8lORzm9Isdjx7/k9S0DFDx+z5VGtw==}
@@ -279,6 +284,14 @@ packages:
     resolution: {integrity: sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A==}
     dev: true
 
+  /globalyzer/0.1.0:
+    resolution: {integrity: sha512-40oNTM9UfG6aBmuKxk/giHn5nQ8RVz/SS4Ir6zgzOv9/qC3kKZ9v4etGTcJbEl/NyVQH7FGU7d+X1egr57Md2Q==}
+    dev: true
+
+  /globrex/0.1.2:
+    resolution: {integrity: sha512-uHJgbwAMwNFf5mLst7IWLNg14x1CkeqglJb/K3doi4dw6q2IvAAmM/Y81kevy83wP+Sst+nutFTYOGg3d1lsxg==}
+    dev: true
+
   /has/1.0.3:
     resolution: {integrity: sha512-f2dvO0VU6Oej7RkWJGrehjbzMAjFp5/VKPp5tTpWIV4JHHZK1/BxbFRtf/siA2SWTe09caDmVtYYzWEIbBS4zw==}
     engines: {node: '>= 0.4.0'}
@@ -408,6 +421,13 @@ packages:
   /svelte/3.44.3:
     resolution: {integrity: sha512-aGgrNCip5PQFNfq9e9tmm7EYxWLVHoFsEsmKrtOeRD8dmoGDdyTQ+21xd7qgFd8MNdKGSYvg7F9dr+Tc0yDymg==}
     engines: {node: '>= 8'}
+    dev: true
+
+  /tiny-glob/0.2.9:
+    resolution: {integrity: sha512-g/55ssRPUjShh+xkfx9UPDXqhckHEsHr4Vd9zX55oSdGZc/MD0m3sferOkwWtp98bv+kcVfEHtRJgBVJzelrzg==}
+    dependencies:
+      globalyzer: 0.1.0
+      globrex: 0.1.2
     dev: true
 
   /vite/2.7.6:

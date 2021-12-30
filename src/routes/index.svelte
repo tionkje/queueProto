@@ -256,6 +256,17 @@
     fallback: fade
   });
   let paused = false;
+
+  import { createTooltip } from '$lib/tooltip.js';
+  const [tooltipEl, tooltipHoverEl] = createTooltip();
+  let hoverData;
+  function onHover(e) {
+    hoverData = e.detail;
+    if (hoverData.kind) {
+      hoverData.tree = TT.tree[hoverData.kind];
+      hoverData.requiredBy = TT.getRequiredBy(hoverData.kind, { [hoverData.producerKind]: true });
+    }
+  }
 </script>
 
 <main class="mainLayout">
@@ -342,6 +353,7 @@
               {#each TT.getProduceOptions(selected.producerKind, research).filter((x) => !research[x]) as kind}
                 <div class="produceButton">
                   <button
+                    use:tooltipHoverEl={{ kind, producerKind: selected.producerKind }}
                     on:click={(e) => queueNewAction(selected, kind)}
                     on:contextmenu|preventDefault={(e) => queueNewAction(selected, kind, Infinity)}
                   >
@@ -399,6 +411,52 @@
 
   <!-- <pre>{JSON.stringify($dir,0,2)}</pre> -->
 </main>
+
+<div class="tooltip" use:tooltipEl on:hover={onHover}>
+  {#if hoverData}
+    {#if hoverData.tree.group == 'G'}Gather
+    {:else if hoverData.tree.group == 'P'}Produce
+    {:else if hoverData.tree.group == 'R'}Research
+    {:else}??{/if}
+    {hoverData.kind}
+
+    {#if hoverData.tree?.cost && hoverData.tree.cost[0] != 0}
+      <br />
+      Cost: {hoverData.tree.cost[0]}
+      {hoverData.tree.cost[1]}
+    {/if}
+
+    {#if hoverData.tree?.gather && hoverData.tree.gather[0] != 0}
+      <br />
+      Gather: {hoverData.tree.gather[0]}
+      {hoverData.tree.gather[1]}
+    {/if}
+
+    {#if hoverData.tree?.time && hoverData.tree.time[0] != 0}
+      <br />
+      time: {hoverData.tree.time}s
+    {/if}
+
+    {#if hoverData.tree.reqs?.length >= 0}
+      <br />
+      needs
+      {#each hoverData.tree.reqs as kind}
+        {kind}
+      {/each}
+    {/if}
+
+    {#if hoverData.requiredBy?.length >= 0}
+      <br />
+      needed by:
+      {#each hoverData.requiredBy as kind}
+        {kind}
+      {/each}
+    {/if}
+
+    <!-- <br> -->
+    <!-- <pre>{JSON.stringify(hoverData,0,2)}</pre> -->
+  {/if}
+</div>
 
 <style>
   :global(body) {
@@ -487,5 +545,17 @@
     background: white;
     padding: 5px;
     border: 1px solid #0000005e;
+  }
+  .tooltip {
+    z-index: 100;
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+
+    background: white;
+
+    padding: 20px;
+    border: 1px solid #00000033;
   }
 </style>

@@ -386,6 +386,7 @@
               {#each TT.getProduceOptions(producerKind, research).filter((x) => !research[x]) as kind}
                 <div class="produceButton">
                   <button
+                    use:tooltipHoverEl={{ kind, producerKind }}
                     on:click={(e) => queueNewAction(getSelectionHead(selection), kind)}
                     on:contextmenu|preventDefault={(e) =>
                       queueNewAction(getSelectionHead(selection), kind, Infinity)}
@@ -437,7 +438,7 @@
       time: {hoverData.tree.time}s
     {/if}
 
-    {#if hoverData.tree.reqs?.length >= 0}
+    {#if hoverData.tree.reqs?.length > 0}
       <br />
       needs
       {#each hoverData.tree.reqs as kind}
@@ -445,7 +446,7 @@
       {/each}
     {/if}
 
-    {#if hoverData.requiredBy?.length >= 0}
+    {#if hoverData.requiredBy?.length > 0}
       <br />
       needed by:
       {#each hoverData.requiredBy as kind}

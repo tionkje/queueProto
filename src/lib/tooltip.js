@@ -1,3 +1,5 @@
+import { tick } from 'svelte';
+
 export function createTooltip() {
   let tooltip;
   let hovers = [];
@@ -14,16 +16,38 @@ export function createTooltip() {
       return () => (tooltip = null);
     },
     function hoverEl(node, data) {
-      function onover(e) {
+      function positionTooltip(e) {
+        const { innerWidth, innerHeight } = window;
+        const { clientX, clientY } = e;
+        let { width, height } = tooltip.getBoundingClientRect();
+
+        // check bigger than screen size
+        var xmax = Math.max(clientX, innerWidth - clientX);
+        tooltip.style.maxWidth = xmax < width ? xmax + 'px' : '';
+        var ymax = Math.max(clientY, innerHeight - clientY);
+        tooltip.style.maxHeight = ymax < height ? ymax + 'px' : '';
+        ({ width, height } = tooltip.getBoundingClientRect());
+
+        // position
+        var x = clientX,
+          y = clientY - height;
+        if (clientX - width < 0) x = clientX;
+        if (clientY - height < 0) y = clientY;
+        if (clientX + width > innerWidth) x = clientX - width;
+        if (clientY + height > innerHeight) y = clientY - height;
+
+        tooltip.style.transform = `translate(${x}px,${y}px)`;
+      }
+      async function onover(e) {
         if (!tooltip) return;
         tooltip.style.display = 'block';
-
         tooltip.dispatchEvent(new CustomEvent('hover', { detail: data }));
+
+        await tick(); // wait for content to be present
+        positionTooltip(e);
       }
       function onmove(e) {
-        const { clientX, clientY } = e;
-        // console.log('move', clientX, clientY);
-        tooltip.style.transform = `translate(${clientX}px,${clientY}px)`;
+        positionTooltip(e);
       }
       function onout() {
         if (!tooltip) return;

@@ -461,6 +461,7 @@
 <style>
   :global(body) {
     font-family: Arial;
+    user-select: none;
   }
   :global(button) {
     cursor: pointer;
